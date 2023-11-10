@@ -19,8 +19,18 @@ These instructions will get you a copy of the project up and running on your loc
 3. Create a virtual environment: `python3 -m venv venv`
 4. Activate the virtual environment: `source venv/bin/activate`
 5. Install the dependencies: `pip install -r requirements.txt`
-6. Run the server: `./run.sh`
-7. Open the API documentation in your browser: http://localhost:8000/docs
+6. Create a `.env` file in the project root directory and add your sensitive information:
+   ```env
+   DATABASE_URL="<your_database_url>"
+   ACCESS_TOKEN_EXPIRE_MINUTES=<access_token_expiry_in_minutes>  # e.g., 30 for 30 minutes
+   REFRESH_TOKEN_EXPIRE_MINUTES=<refresh_token_expiry_in_minutes>  # e.g., 60 * 24 * 7 for 7 days
+   ALGORITHM="<your_algorithm>"  # e.g., "HS256"
+   JWT_SECRET_KEY="<your_jwt_secret_key>"  # should be kept secret
+   JWT_REFRESH_SECRET_KEY="<your_jwt_refresh_secret_key>"  # should be kept secret
+    ```
+    Replace the placeholders with your actual values. 
+7. Run the server: `./run.sh`
+8. Open the API documentation in your browser: http://localhost:8000/docs
 
 ## For Developers
 Please use the following command to update requirements.txt after installing new packages:
