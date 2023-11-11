@@ -18,12 +18,15 @@ from app.auth.auth import (
     verify_password,
     get_hashed_password,
     token_required,
+    admin_required,
 )
 
 router = APIRouter()
 
 
-@router.post("/register")
+@router.post("/create-user")
+@token_required
+@admin_required
 def register_user(user: UserCreate, session: Session = Depends(get_session)):
     """
     Registers a new user.
@@ -45,7 +48,10 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
     encrypted_password = get_hashed_password(user.password)
 
     new_user = User(
-        username=user.username, email=user.email, password=encrypted_password
+        username=user.username,
+        email=user.email,
+        password=encrypted_password,
+        is_admin=user.is_admin,
     )
 
     session.add(new_user)
@@ -126,7 +132,7 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
     }
 
 
-@router.get("/getusers")  # , dependencies=[Depends(token_required)])
+@router.get("/getusers")
 @token_required
 def getusers(_request: Request, session: Session = Depends(get_session)):
     """
@@ -140,6 +146,22 @@ def getusers(_request: Request, session: Session = Depends(get_session)):
     """
     user = session.query(User).all()
     return user
+
+
+@router.get("/am-i-admin")
+@token_required
+@admin_required
+def am_i_admin(_request: Request, session: Session = Depends(get_session)):
+    """
+    Checks if the user is an admin.
+
+    Args:
+        session (Session, optional): The database session. Defaults to Depends(get_session()).
+
+    Returns:
+        bool: True if the user is an admin, False otherwise.
+    """
+    return True
 
 
 @router.post("/change-password")

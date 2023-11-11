@@ -11,6 +11,7 @@ from jose import jwt, JWTError
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
 from app.models.token_table import TokenTable
+from app.models.user import User
 from app.config.settings import (
     JWT_SECRET_KEY,
     JWT_REFRESH_SECRET_KEY,
@@ -97,6 +98,28 @@ def decode_refresh_jwt(jwtoken: str) -> dict:
         return None
 
 
+def get_user(jwtoken: str, db: Any) -> Any:
+    """
+    Get the user from the database.
+
+    Args:
+    - jwtoken (str): JWT token to decode.
+    - db (Any): Database session.
+
+    Returns:
+    - Any: User if the token is valid, None otherwise.
+    """
+    payload = decode_jwt(jwtoken)
+    print(payload)
+    if payload is not None:
+        user_id = payload.get("sub")
+        print(user_id)
+        if user_id is not None:
+            user = db.query(User).filter(User.id == user_id).first()
+            return user
+    return None
+
+
 def token_required(func):
     """Decorator to check if token is valid"""
 
@@ -139,6 +162,28 @@ def token_required(func):
 
         if not data:
             raise HTTPException(status_code=403, detail="Token blocked")
+
+        print("Reached end")
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+def admin_required(func):
+    """Decorator to check if user is admin"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        request = kwargs.get("_request")
+        authorization: str = request.headers.get("Authorization")
+        _, _, token = authorization.partition(" ")
+        user = get_user(token, kwargs["session"])
+
+        if not user.is_admin:
+            raise HTTPException(
+                status_code=403, detail="You are not authorized to access this resource"
+            )
 
         return func(*args, **kwargs)
 

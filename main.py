@@ -4,7 +4,9 @@ This module contains the main FastAPI application.
 
 from fastapi import FastAPI
 from app.routes.user import router as user_router
+from app.models.user import User
 from app.database import engine as database, get_session, Base
+from app.auth.auth import get_hashed_password
 
 app = FastAPI()
 
@@ -19,6 +21,27 @@ async def startup():
     # connect to the database
     try:
         database.connect()
+        db = next(get_session())
+
+        # check if admin user exists email or username
+        user = db.query(User).filter(User.username == "admin").first()
+        if not user:
+            user = db.query(User).filter(User.email == "admin@localhost").first()
+            if not user:
+                user = User(
+                    username="admin",
+                    email="admin@localhost",
+                    password=get_hashed_password("admin"),
+                    is_admin=True,
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            else:
+                print("Admin user already exists")
+        else:
+            print("Admin user already exists")
+
     except Exception as e:
         print(f"Error connecting to database: {e}")
         raise e
