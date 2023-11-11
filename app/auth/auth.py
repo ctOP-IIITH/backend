@@ -102,7 +102,7 @@ def token_required(func):
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        request = kwargs.get("request")
+        request = kwargs.get("_request")
         if not request:
             raise HTTPException(status_code=403, detail="Invalid request")
 

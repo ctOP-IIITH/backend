@@ -128,7 +128,7 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
 @router.get("/getusers")  # , dependencies=[Depends(token_required)])
 @token_required
-def getusers(request: Request, session: Session = Depends(get_session)):
+def getusers(_request: Request, session: Session = Depends(get_session)):
     """
     Returns a list of all users.
 

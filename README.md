@@ -30,6 +30,7 @@ These instructions will get you a copy of the project up and running on your loc
     ```
     Replace the placeholders with your actual values. 
 7. Run the server: `./run.sh`
+   > **Note:** If you are a developer, you can run the server in development mode by running `./run.sh --test` instead.
 8. Open the API documentation in your browser: http://localhost:8000/docs
 
 ## For Developers
