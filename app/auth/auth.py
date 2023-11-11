@@ -7,8 +7,9 @@ from datetime import datetime, timedelta
 from typing import Union, Any
 from functools import wraps
 from passlib.context import CryptContext
-from jose import jwt
-
+from jose import jwt, JWTError
+from jwt.exceptions import InvalidTokenError
+from fastapi import HTTPException
 from app.models.token_table import TokenTable
 from app.config.settings import (
     JWT_SECRET_KEY,
@@ -61,22 +62,84 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) ->
     return encoded_jwt
 
 
+def decode_jwt(jwtoken: str) -> dict:
+    """
+    Decode and verify the JWT token.
+
+    Args:
+    - jwtoken (str): JWT token to decode.
+
+    Returns:
+    - dict: Decoded payload if the token is valid, None otherwise.
+    """
+    try:
+        payload = jwt.decode(jwtoken, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except InvalidTokenError:
+        return None
+
+
+# decode refresh token
+def decode_refresh_jwt(jwtoken: str) -> dict:
+    """
+    Decode and verify the JWT token.
+
+    Args:
+    - jwtoken (str): JWT token to decode.
+
+    Returns:
+    - dict: Decoded payload if the token is valid, None otherwise.
+    """
+    try:
+        payload = jwt.decode(jwtoken, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except InvalidTokenError:
+        return None
+
+
 def token_required(func):
     """Decorator to check if token is valid"""
 
     @wraps(func)
-    def wrapper(**kwargs):
-        payload = jwt.decode(kwargs["dependencies"], JWT_SECRET_KEY, ALGORITHM)
-        user_id = payload["sub"]
+    async def wrapper(*args, **kwargs):
+        request = kwargs.get("request")
+        if not request:
+            raise HTTPException(status_code=403, detail="Invalid request")
+
+        authorization: str = request.headers.get("Authorization")
+        if not authorization:
+            raise HTTPException(
+                status_code=403, detail="You are not authorized to access this resource"
+            )
+
+        scheme, _, token = authorization.partition(" ")
+
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=403, detail="Invalid authorization scheme")
+
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, ALGORITHM)
+        except JWTError as exc:
+            raise HTTPException(
+                status_code=403, detail="Invalid token or expired token"
+            ) from exc
+
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=403, detail="Invalid token or expired token"
+            )
+
         data = (
             kwargs["session"]
             .query(TokenTable)
-            .filter_by(user_id=user_id, access_toke=kwargs["dependencies"], status=True)
+            .filter_by(user_id=user_id, access_token=token, status=True)
             .first()
         )
-        if data:
-            return func(kwargs["dependencies"], kwargs["session"])
 
-        return {"msg": "Token blocked"}
+        if not data:
+            raise HTTPException(status_code=403, detail="Token blocked")
+
+        return func(*args, **kwargs)
 
     return wrapper

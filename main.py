@@ -29,7 +29,7 @@ async def shutdown():
     """
     This function is called when the application shuts down. It disconnects from the database.
     """
-    database.disconnect()
+    get_session().close()
 
 
 # include user_router with prefix /user

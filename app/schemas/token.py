@@ -24,4 +24,12 @@ class TokenSchema(BaseModel):
     """
 
     access_token: str
+    refresh_token: str = None
+
+
+class TokenRefresh(BaseModel):
+    """
+    Schema for a refresh token.
+    """
+
     refresh_token: str

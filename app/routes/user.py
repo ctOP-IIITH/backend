@@ -2,22 +2,23 @@
 This module defines the user routes for the FastAPI application.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 
 from sqlalchemy.orm import Session
 
 from app.schemas.user import UserCreate, RequestDetails, ChangePassword
-from app.schemas.token import TokenSchema
+from app.schemas.token import TokenSchema, TokenRefresh
 from app.models.user import User
 from app.models.token_table import TokenTable
 from app.database import get_session
 from app.auth.auth import (
+    decode_refresh_jwt,
     create_access_token,
     create_refresh_token,
     verify_password,
     get_hashed_password,
+    token_required,
 )
-from app.auth.auth_bearer import JWTBearer
 
 router = APIRouter()
 
@@ -92,17 +93,47 @@ def login(request: RequestDetails, db: Session = Depends(get_session)):
     return {
         "access_token": access,
         "refresh_token": refresh,
+        "token_type": "bearer",
     }
 
 
-@router.get("/getusers")
-def getusers(session: Session = Depends(get_session), _: str = Depends(JWTBearer())):
+@router.post("/token/refresh", response_model=TokenSchema)
+def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
+    """
+    Refreshes an access token using a refresh token.
+
+    Args:
+        token (TokenRefresh): The refresh token.
+        db (Session, optional): The database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: If the refresh token is invalid.
+
+    Returns:
+        dict: A dictionary containing the new access token.
+    """
+    payload = decode_refresh_jwt(token.refresh_token)
+    user_id = payload.get("sub")
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid refresh token.")
+
+    access_token = create_access_token(user.id)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+
+
+@router.get("/getusers")  # , dependencies=[Depends(token_required)])
+@token_required
+def getusers(request: Request, session: Session = Depends(get_session)):
     """
     Returns a list of all users.
 
     Args:
         session (Session, optional): The database session. Defaults to Depends(get_session()).
-        _ (str, optional): The JWT token. Defaults to Depends(JWTBearer()).
 
     Returns:
         list: A list of all users.
