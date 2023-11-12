@@ -125,7 +125,7 @@ def token_required(func):
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        request = kwargs.get("_request")
+        request = kwargs.get("request")
         if not request:
             raise HTTPException(status_code=403, detail="Invalid request")
 
@@ -175,7 +175,7 @@ def admin_required(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        request = kwargs.get("_request")
+        request = kwargs.get("request")
         authorization: str = request.headers.get("Authorization")
         _, _, token = authorization.partition(" ")
         user = get_user(token, kwargs["session"])

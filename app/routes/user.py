@@ -134,7 +134,7 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
 @router.get("/getusers")
 @token_required
-def getusers(_request: Request, session: Session = Depends(get_session)):
+def getusers(request: Request, session: Session = Depends(get_session)):
     """
     Returns a list of all users.
 
@@ -144,6 +144,8 @@ def getusers(_request: Request, session: Session = Depends(get_session)):
     Returns:
         list: A list of all users.
     """
+    # use request to avoid pycharm warning
+    _ = request
     user = session.query(User).all()
     return user
 
@@ -151,7 +153,7 @@ def getusers(_request: Request, session: Session = Depends(get_session)):
 @router.get("/am-i-admin")
 @token_required
 @admin_required
-def am_i_admin(_request: Request, session: Session = Depends(get_session)):
+def am_i_admin(request: Request, session: Session = Depends(get_session)):
     """
     Checks if the user is an admin.
 
@@ -161,6 +163,7 @@ def am_i_admin(_request: Request, session: Session = Depends(get_session)):
     Returns:
         bool: True if the user is an admin, False otherwise.
     """
+    _, _ = request, session
     return True
 
 
