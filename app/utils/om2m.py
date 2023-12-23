@@ -76,3 +76,92 @@ class Om2m:
             timeout=timeout,
         )
         return r
+
+    def delete_resource(self, resource_path, timeout=None):
+        """
+        Deletes a resource in OM2M.
+        """
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+        }
+        r = requests.delete(
+            f"{self.url}/{resource_path}",
+            headers=headers,
+            timeout=timeout,
+        )
+        return r
+
+    def get_all_containers(self, resource_path="", timeout=None):
+        """
+        Retrieves all containers from the OM2M server.
+        """
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+        }
+        r = requests.get(
+            f"{self.url}/{resource_path}?rcn=4",
+            headers=headers,
+            timeout=timeout
+        )
+        return r
+
+    def get_all_resource(self, resource_path: str, timeout=None):
+        """
+        Gets all resource in OM2M.
+        """
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+        }
+        r = requests.get(
+            f"{self.url}/{resource_path}?rcn=4",
+            headers=headers,
+            timeout=timeout,
+        )
+        return r
+
+
+    def get_la_cin(self,resource_path, timeout=None):
+        """
+        Gets latest content instance in OM2M.
+        """
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+        }
+
+        r = requests.get(
+            f"{self.url}/{resource_path}/la",
+            headers=headers,
+            timeout=timeout,
+        )
+        return r
+
+    def get_descriptor_la(self, resource_path, timeout=None):
+        """
+        Get the latest descriptor of a resource in OM2M.
+        """
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+        }
+        r = requests.get(
+            f"{self.url}/{resource_path}/Descriptor/la",
+            headers=headers,
+            timeout=timeout,
+        )
+        return r
+
+    def create_subscription(self, resource_path, rn, nu, nct=2, timeout=None):
+        """
+        Creates a subscription resource in OM2M.
+        """
+        data = {"m2m:sub": {"rn": rn, "nu": nu, "nct": nct}}
+        headers = {
+            "X-M2M-Origin": f"{self.username}:{self.password}",
+            "Content-Type": "application/json;ty=23",
+        }
+        r = requests.post(
+            f"{self.url}/{resource_path}",
+            headers=headers,
+            json=data,
+            timeout=timeout,
+        )
+        return r
