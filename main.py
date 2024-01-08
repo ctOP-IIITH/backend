@@ -4,6 +4,7 @@ This module contains the main FastAPI application.
 
 from fastapi import FastAPI
 from app.routes.user import router as user_router
+from app.routes.verticals import router as verticals_router
 from app.models.user import User
 from app.database import engine as database, get_session, Base
 from app.auth.auth import get_hashed_password
@@ -57,6 +58,7 @@ async def shutdown():
 
 # include user_router with prefix /user
 app.include_router(user_router, prefix="/user")
+app.include_router(verticals_router, prefix="/verticals")
 
 
 # Include get_session as a dependency globally
