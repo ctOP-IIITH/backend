@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
     username: str
     email: str
     password: str
-    is_admin: bool = False
+    user_type: int
 
 
 class RequestDetails(BaseModel):

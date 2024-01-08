@@ -2,8 +2,9 @@
 This module defines the User model.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String
 from app.database import Base
+from app.models.user_types import UserType
 
 
 class User(Base):
@@ -17,7 +18,10 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
-    is_admin = Column(Boolean, default=False)
+    # is_admin = Column(Boolean, default=False)
+    user_type = Column(Integer, default=UserType.CUSTOMER.value)
+
+    # TODO Add login history and password change history
 
     def __repr__(self):
         return f"<User {self.username}>"

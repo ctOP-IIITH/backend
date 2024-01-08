@@ -51,7 +51,7 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
         username=user.username,
         email=user.email,
         password=encrypted_password,
-        is_admin=user.is_admin,
+        user_type=user.user_type
     )
 
     session.add(new_user)
@@ -196,5 +196,6 @@ def change_password(request: ChangePassword, db: Session = Depends(get_session))
     encrypted_password = get_hashed_password(request.new_password)
     user.password = encrypted_password
     db.commit()
-
+    
+    # TODO: Add to db, last password changed
     return {"message": "Password changed successfully"}

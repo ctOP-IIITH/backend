@@ -5,6 +5,7 @@ This module contains the main FastAPI application.
 from fastapi import FastAPI
 from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
+from app.models.user_types import UserType
 from app.models.user import User
 from app.database import engine as database, get_session, Base
 from app.auth.auth import get_hashed_password
@@ -33,7 +34,7 @@ async def startup():
                     username="admin",
                     email="admin@localhost",
                     password=get_hashed_password("admin"),
-                    is_admin=True,
+                    user_type= UserType.ADMIN.value
                 )
                 db.add(user)
                 db.commit()
