@@ -34,13 +34,12 @@ class Om2m:
         r = requests.post(self.url, headers=headers, json=data, timeout=timeout)
         return r.status_code, r.text
 
-    def create_container(self, name, parent, labels=None, mni=120, timeout=None):
+    def create_container(self, name, path, labels=None, mni=120, timeout=None):
         """
-        Creates a container resource in OM2M.
+        Creates a node resource in OM2M.
         """
         if labels is None:
             labels = []
-        # Create Node
         data = {"m2m:cnt": {"rn": name, "lbl": labels, "mni": mni}}
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
@@ -48,17 +47,9 @@ class Om2m:
         }
 
         r = requests.post(
-            f"{self.url}/{parent}", headers=headers, json=data, timeout=timeout
+            f"{self.url}/{path}", headers=headers, json=data, timeout=timeout
         )
-
-        # Create Data Container inside Node
-        data = {"m2m:cnt": {"rn": "Data", "lbl": labels, "mni": mni}}
-
-        r = requests.post(
-            f"{self.url}/{parent}/{name}", headers=headers, json=data, timeout=timeout
-        )
-
-        return r.status_code
+        return r
 
     def create_cin(self, parent, node, con, lbl, cnf, timeout=None):
         """
@@ -99,9 +90,7 @@ class Om2m:
             "X-M2M-Origin": f"{self.username}:{self.password}",
         }
         r = requests.get(
-            f"{self.url}/{resource_path}?rcn=4",
-            headers=headers,
-            timeout=timeout
+            f"{self.url}/{resource_path}?rcn=4", headers=headers, timeout=timeout
         )
         return r
 
@@ -119,8 +108,7 @@ class Om2m:
         )
         return r
 
-
-    def get_la_cin(self,resource_path, timeout=None):
+    def get_la_cin(self, resource_path, timeout=None):
         """
         Gets latest content instance in OM2M.
         """
@@ -130,20 +118,6 @@ class Om2m:
 
         r = requests.get(
             f"{self.url}/{resource_path}/la",
-            headers=headers,
-            timeout=timeout,
-        )
-        return r
-
-    def get_descriptor_la(self, resource_path, timeout=None):
-        """
-        Get the latest descriptor of a resource in OM2M.
-        """
-        headers = {
-            "X-M2M-Origin": f"{self.username}:{self.password}",
-        }
-        r = requests.get(
-            f"{self.url}/{resource_path}/Descriptor/la",
             headers=headers,
             timeout=timeout,
         )
