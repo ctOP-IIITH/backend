@@ -19,7 +19,7 @@ class Om2m:
         self.password = password
         self.url = url
 
-    def create_ae(self, name, labels=None, rr=False, timeout=None):
+    def create_ae(self, name, path, labels=None, rr=False, timeout=None):
         """
         Creates an Application Entity (AE) resource in OM2M.
         """
@@ -31,7 +31,11 @@ class Om2m:
             "Content-Type": "application/json;ty=2",
         }
 
-        r = requests.post(self.url, headers=headers, json=data, timeout=timeout)
+        print(f"{self.url}/{path}")
+        r = requests.post(
+            f"{self.url}/{path}", headers=headers, json=data, timeout=timeout
+        )
+        print(r.status_code, r.text)
         return r.status_code, r.text
 
     def create_container(self, name, path, labels=None, mni=120, timeout=None):

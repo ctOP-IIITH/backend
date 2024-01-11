@@ -19,7 +19,9 @@ om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
 @router.post("/create-node")
 @token_required
 @admin_required
-async def create_node(node: NodeCreate, request: Request):
+def create_node(
+    node: NodeCreate, request: Request, session: Session = Depends(get_session)
+):
     """
     Create an AE (Application Entity) with the given name and labels.
 
@@ -36,7 +38,9 @@ async def create_node(node: NodeCreate, request: Request):
 
 @router.get("/get-nodes")
 @token_required
-async def get_nodes(node: NodeGetAll, request: Request):
+def get_nodes(
+    node: NodeGetAll, request: Request, session: Session = Depends(get_session)
+):
     """
     Retrieves the subcontainers for a given path.
 
@@ -80,7 +84,9 @@ async def get_nodes(node: NodeGetAll, request: Request):
 @router.delete("/delete-node")
 @token_required
 @admin_required
-async def delete_node(node: NodeDelete, request: Request):
+def delete_node(
+    node: NodeDelete, request: Request, session: Session = Depends(get_session)
+):
     """
     Deletes a node with the given name.
 

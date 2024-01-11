@@ -5,7 +5,6 @@ from app.auth.auth import (
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
-import requests
 from app.utils.om2m import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 import xml.etree.ElementTree as ET
@@ -19,7 +18,9 @@ om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
 @router.post("/create-ae")
 @token_required
 @admin_required
-async def create_ae(vertical: VerticalCreate, request: Request):
+def create_ae(
+    vertical: VerticalCreate, request: Request, session: Session = Depends(get_session)
+):
     """
     Create an AE (Application Entity) with the given name and labels.
 
@@ -30,13 +31,15 @@ async def create_ae(vertical: VerticalCreate, request: Request):
         int: The status code of the operation.
     """
     ae_name = vertical.ae_name
-    status_code, data = om2m.create_ae(ae_name, labels=[ae_name])
+    status_code, data = om2m.create_ae(ae_name, vertical.path, labels=[ae_name])
     return status_code
 
 
 @router.get("/get-aes")
 @token_required
-async def get_aes(vertical: VerticalGetAll, request: Request):
+def get_aes(
+    vertical: VerticalGetAll, request: Request, session: Session = Depends(get_session)
+):
     """
     Retrieves the subcontainers for a given path.
 
@@ -75,10 +78,12 @@ async def get_aes(vertical: VerticalGetAll, request: Request):
         return []
 
 
-@router.delete("/delete-ae/{ae_name}")
+@router.delete("/delete-ae")
 @token_required
 @admin_required
-async def delete_ae(vertical: VerticalDelete, request: Request):
+def delete_ae(
+    vertical: VerticalDelete, request: Request, session: Session = Depends(get_session)
+):
     """
     This function deletes an AE resource in OM2M.
 

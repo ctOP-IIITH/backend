@@ -1,8 +1,9 @@
-
 from pydantic import BaseModel
+
 
 class VerticalCreate(BaseModel):
     ae_name: str
+    path: str
 
 
 class VerticalGetAll(BaseModel):
@@ -10,4 +11,5 @@ class VerticalGetAll(BaseModel):
 
 
 class VerticalDelete(BaseModel):
-    path:  str
+    path: str
+    ae_name: str
