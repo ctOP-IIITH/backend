@@ -58,7 +58,7 @@ class Om2m:
             f"{self.url}/{parent}/{name}", headers=headers, json=data, timeout=timeout
         )
 
-        return r.status_code
+        return r.status_code, r.text
 
     def create_cin(self, parent, node, con, lbl, cnf, timeout=None):
         """

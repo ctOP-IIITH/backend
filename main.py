@@ -2,9 +2,12 @@
 This module contains the main FastAPI application.
 """
 
+import requests
 from fastapi import FastAPI
+from app.config.settings import OM2M_URL
 from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
+from app.routes.import_conf import router as import_conf_router
 from app.models.user_types import UserType
 from app.models.user import User
 from app.database import engine as database, get_session, Base
@@ -28,13 +31,14 @@ async def startup():
         # check if admin user exists email or username
         user = db.query(User).filter(User.username == "admin").first()
         if not user:
-            user = db.query(User).filter(User.email == "admin@localhost").first()
+            user = db.query(User).filter(
+                User.email == "admin@localhost").first()
             if not user:
                 user = User(
                     username="admin",
                     email="admin@localhost",
                     password=get_hashed_password("admin"),
-                    user_type= UserType.ADMIN.value
+                    user_type=UserType.ADMIN.value
                 )
                 db.add(user)
                 db.commit()
@@ -46,6 +50,14 @@ async def startup():
 
     except Exception as e:
         print(f"Error connecting to database: {e}")
+        raise e
+
+    try:
+        requests.get(OM2M_URL, timeout=5)
+        print("Connection to OM2M successful.")
+
+    except requests.RequestException as e:
+        print(f"Unable to connect to {OM2M_URL}. Error: {e}")
         raise e
 
 
@@ -60,6 +72,7 @@ async def shutdown():
 # include user_router with prefix /user
 app.include_router(user_router, prefix="/user")
 app.include_router(verticals_router, prefix="/verticals")
+app.include_router(import_conf_router, prefix="/import")
 
 
 # Include get_session as a dependency globally

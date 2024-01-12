@@ -16,10 +16,16 @@ class Node(Base):
 
     id = Column(Integer, primary_key=True)
     sensor_type_id = Column(Integer, ForeignKey("sensor_types.id"))
-    sensor_types = relationship("SensorType", back_populates="nodes")
+    """ID of the sensor type this node belongs to"""
+    sensor_node_number = Column(Integer)
+    """The ID number of this node in the given sensor type"""
+
+    # sensor_types = relationship("SensorType", back_populates="nodes")
     labels = Column(ARRAY(String(50)), nullable=False)
     lat = Column(Float, nullable=True)
     long = Column(Float, nullable=True)
+    location = Column(String(100), nullable=True)
+    landmark = Column(String(100), nullable=True)
     area = Column(String(100), nullable=True)
     orid = Column(String(50), nullable=False)
 
