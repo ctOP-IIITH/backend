@@ -4,7 +4,7 @@ This module contains the main FastAPI application.
 
 import requests
 from fastapi import FastAPI
-from app.config.settings import OM2M_URL
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
@@ -13,7 +13,18 @@ from app.models.user import User
 from app.database import engine as database, get_session, Base
 from app.auth.auth import get_hashed_password
 
+from app.config.settings import OM2M_URL
+
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 @app.on_event("startup")
@@ -31,14 +42,13 @@ async def startup():
         # check if admin user exists email or username
         user = db.query(User).filter(User.username == "admin").first()
         if not user:
-            user = db.query(User).filter(
-                User.email == "admin@localhost").first()
+            user = db.query(User).filter(User.email == "admin@localhost").first()
             if not user:
                 user = User(
                     username="admin",
                     email="admin@localhost",
                     password=get_hashed_password("admin"),
-                    user_type=UserType.ADMIN.value
+                    user_type=UserType.ADMIN.value,
                 )
                 db.add(user)
                 db.commit()
