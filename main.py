@@ -3,12 +3,22 @@ This module contains the main FastAPI application.
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes.user import router as user_router
 from app.models.user import User
 from app.database import engine as database, get_session, Base
 from app.auth.auth import get_hashed_password
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 @app.on_event("startup")
