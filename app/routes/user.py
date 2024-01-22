@@ -27,7 +27,9 @@ router = APIRouter()
 @router.post("/create-user")
 @token_required
 @admin_required
-def register_user(user: UserCreate, session: Session = Depends(get_session)):
+def register_user(
+    user: UserCreate, session: Session = Depends(get_session), current_user=None
+):
     """
     Registers a new user.
 
@@ -41,6 +43,7 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
     Returns:
         dict: A dictionary containing a success message.
     """
+    _ = current_user
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -134,7 +137,9 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
 @router.get("/getusers")
 @token_required
-def getusers(request: Request, session: Session = Depends(get_session)):
+def getusers(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
     """
     Returns a list of all users.
 
@@ -145,7 +150,7 @@ def getusers(request: Request, session: Session = Depends(get_session)):
         list: A list of all users.
     """
     # use request to avoid pycharm warning
-    _ = request
+    _ = request, current_user
     user = session.query(User).all()
     return user
 
@@ -153,7 +158,9 @@ def getusers(request: Request, session: Session = Depends(get_session)):
 @router.get("/am-i-admin")
 @token_required
 @admin_required
-def am_i_admin(request: Request, session: Session = Depends(get_session), user=None):
+def am_i_admin(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
     """
     Checks if the user is an admin.
 
@@ -166,7 +173,7 @@ def am_i_admin(request: Request, session: Session = Depends(get_session), user=N
     _, _ = request, session
 
     # stringify dict
-    return str({"admin": "True", "username": user.username})
+    return str({"admin": "True", "username": current_user.username})
 
 
 @router.post("/change-password")

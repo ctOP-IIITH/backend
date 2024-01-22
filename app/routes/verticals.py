@@ -19,7 +19,7 @@ om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
 @router.post("/create-ae")
 @token_required
 @admin_required
-async def create_ae(vertical: VerticalCreate, request: Request):
+async def create_ae(vertical: VerticalCreate, request: Request, current_user=None):
     """
     Create an AE (Application Entity) with the given name and labels.
 
@@ -36,7 +36,7 @@ async def create_ae(vertical: VerticalCreate, request: Request):
 
 @router.get("/get-aes")
 @token_required
-async def get_aes(vertical: VerticalGetAll, request: Request):
+async def get_aes(vertical: VerticalGetAll, request: Request, current_user=None):
     """
     Retrieves the subcontainers for a given path.
 
@@ -78,7 +78,7 @@ async def get_aes(vertical: VerticalGetAll, request: Request):
 @router.delete("/delete-ae/{ae_name}")
 @token_required
 @admin_required
-async def delete_ae(vertical: VerticalDelete, request: Request):
+async def delete_ae(vertical: VerticalDelete, request: Request, current_user=None):
     """
     This function deletes an AE resource in OM2M.
 
