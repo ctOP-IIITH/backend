@@ -10,7 +10,7 @@ from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
 from app.models.user_types import UserType
 from app.models.user import User
-from app.database import engine as database, get_session, Base
+from app.database import engine as database, get_session, Base, reset_database
 from app.auth.auth import get_hashed_password
 
 from app.config.settings import OM2M_URL
@@ -38,7 +38,7 @@ async def startup():
     try:
         database.connect()
         db = next(get_session())
-
+        # reset_database()
         # check if admin user exists email or username
         user = db.query(User).filter(User.username == "admin").first()
         if not user:

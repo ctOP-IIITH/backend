@@ -51,7 +51,7 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
         username=user.username,
         email=user.email,
         password=encrypted_password,
-        user_type=user.user_type
+        user_type=user.user_type,
     )
 
     session.add(new_user)
@@ -153,7 +153,7 @@ def getusers(request: Request, session: Session = Depends(get_session)):
 @router.get("/am-i-admin")
 @token_required
 @admin_required
-def am_i_admin(request: Request, session: Session = Depends(get_session)):
+def am_i_admin(request: Request, session: Session = Depends(get_session), user=None):
     """
     Checks if the user is an admin.
 
@@ -164,7 +164,9 @@ def am_i_admin(request: Request, session: Session = Depends(get_session)):
         bool: True if the user is an admin, False otherwise.
     """
     _, _ = request, session
-    return True
+
+    # stringify dict
+    return str({"admin": "True", "username": user.username})
 
 
 @router.post("/change-password")
@@ -196,6 +198,6 @@ def change_password(request: ChangePassword, db: Session = Depends(get_session))
     encrypted_password = get_hashed_password(request.new_password)
     user.password = encrypted_password
     db.commit()
-    
+
     # TODO: Add to db, last password changed
     return {"message": "Password changed successfully"}
