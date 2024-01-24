@@ -8,6 +8,7 @@ from app.database import get_session
 from app.utils.om2m import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 import xml.etree.ElementTree as ET
+from app.models.vertical import Vertical as DBAE
 
 
 router = APIRouter()
@@ -32,13 +33,28 @@ def create_ae(
     """
     ae_name = vertical.ae_name
     status_code, data = om2m.create_ae(ae_name, vertical.path, labels=[ae_name])
+    if status_code == 201:
+        new_ae = DBAE(ae_name=ae_name, path=vertical.path)
+        session.add(new_ae)
+        session.commit()
+    elif status_code == 409:
+        raise HTTPException(status_code=409, detail="AE already exists")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating AE",
+        )
+
     return status_code
 
 
 @router.get("/get-aes")
 @token_required
 def get_aes(
-    vertical: VerticalGetAll, request: Request, session: Session = Depends(get_session)
+    vertical: VerticalGetAll,
+    request: Request,
+    current_user=None,
+    session: Session = Depends(get_session),
 ):
     """
     Retrieves the subcontainers for a given path.
@@ -56,7 +72,12 @@ def get_aes(
     )
 
     try:
-        root = ET.fromstring(om2m.get_all_containers(path).text)
+        data = om2m.get_all_containers(path).text
+        if not data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Path not found"
+            )
+        root = ET.fromstring(data)
         m2m_ae_elements = root.findall(
             f".//{parent}", {"m2m": "http://www.onem2m.org/xml/protocols"}
         )
@@ -93,5 +114,24 @@ def delete_ae(
     Returns:
         int: The status code of the request.
     """
+
+    ae = session.query(DBAE).filter(DBAE.res_name == vertical.ae_name).first()
+    if ae is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
+        )
     status_code = om2m.delete_resource(f"{vertical.ae_name}")
+    if status_code == 200:
+        session.delete(ae)
+        session.commit()
+    elif status_code == 404:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error deleting AE",
+        )
+
     return status_code

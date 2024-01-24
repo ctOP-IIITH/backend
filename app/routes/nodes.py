@@ -8,6 +8,8 @@ from app.database import get_session
 from app.utils.om2m import Om2m
 import xml.etree.ElementTree as ET
 from app.schemas.nodes import NodeCreate, NodeGetAll, NodeDelete
+from app.models.node import Node as DBNode
+
 
 router = APIRouter()
 
@@ -32,14 +34,28 @@ def create_node(
         int: The status code of the operation.
     """
     node_name = node.node_name
+    new_node = DBNode(node_name=node_name, path=node.path)
     response = om2m.create_container(node_name, node.path, labels=[node_name])
-    return response.status_code
+    if response.status_code == 201:
+        session.add(new_node)
+        session.commit()
+        return response.status_code
+    elif response.status_code == 409:
+        raise HTTPException(status_code=409, detail="Node already exists")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating node",
+        )
 
 
 @router.get("/get-nodes")
 @token_required
 def get_nodes(
-    node: NodeGetAll, request: Request, session: Session = Depends(get_session)
+    node: NodeGetAll,
+    request: Request,
+    current_user=None,
+    session: Session = Depends(get_session),
 ):
     """
     Retrieves the subcontainers for a given path.
@@ -98,5 +114,30 @@ def delete_node(
     """
     node_name = node.node_name
     path = node.path
+    if not node_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Node name is missing",
+        )
+
+    if not path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Path is missing",
+        )
+
     response = om2m.delete_resource(f"{path}/{node_name}")
+
+    if 200 <= response.status_code < 300:
+        # Delete the node from the database
+        node_to_delete = session.query(DBNode).filter(DBNode.node_name == node_name).first()
+        if node_to_delete:
+            session.delete(node_to_delete)
+            session.commit()
+    else:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail="Error deleting node",
+        )
+
     return response.status_code

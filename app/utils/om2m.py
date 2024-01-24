@@ -55,11 +55,13 @@ class Om2m:
         )
         return r
 
-    def create_cin(self, parent, node, con, lbl, cnf, timeout=None):
+    def create_cin(self, parent, node, con, lbl=None, timeout=None):
         """
         Creates a content instance resource in OM2M.
         """
-        data = {"m2m:cin": {"con": con, "lbl": lbl, "cnf": cnf}}
+        if lbl is None:
+            lbl = [node]
+        data = {"m2m:cin": {"con": con, "lbl": lbl}}
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
             "Content-Type": "application/json;ty=4",

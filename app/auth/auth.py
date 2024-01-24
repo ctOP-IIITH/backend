@@ -11,6 +11,7 @@ from jose import jwt, JWTError
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
 from app.models.token_table import TokenTable
+from app.models.user_types import UserType
 from app.models.user import User
 from app.config.settings import (
     JWT_SECRET_KEY,
@@ -165,6 +166,8 @@ def token_required(func):
 
         print("Reached end")
 
+        user = get_user(token, kwargs["session"])
+        kwargs["current_user"] = user
         return func(*args, **kwargs)
 
     return wrapper
@@ -175,12 +178,8 @@ def admin_required(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        request = kwargs.get("request")
-        authorization: str = request.headers.get("Authorization")
-        _, _, token = authorization.partition(" ")
-        user = get_user(token, kwargs["session"])
-
-        if not user.is_admin:
+        user = kwargs.get("current_user")
+        if user.user_type != UserType.ADMIN.value:
             raise HTTPException(
                 status_code=403, detail="You are not authorized to access this resource"
             )
