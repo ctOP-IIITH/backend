@@ -26,10 +26,15 @@ def create_ae(
     Create an AE (Application Entity) with the given name and labels.
 
     Args:
+        vertical (VerticalCreate): The data required to create the AE.
         request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
 
     Returns:
         int: The status code of the operation.
+
+    Raises:
+        HTTPException: If there is an error creating the AE or if the AE already exists.
     """
     ae_name = vertical.ae_name
     status_code, data = om2m.create_ae(ae_name, vertical.path, labels=[ae_name])
@@ -60,10 +65,17 @@ def get_aes(
     Retrieves the subcontainers for a given path.
 
     Parameters:
-    - path (str): The path to retrieve the subcontainers from.
+    - vertical (VerticalGetAll): The vertical object containing the path to retrieve the subcontainers from.
+    - request (Request): The request object.
+    - current_user (optional): The current user.
+    - session (Session): The database session.
 
     Returns:
     - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
+    
+    Raises:
+    - HTTPException: If the path is not found or there is an error parsing XML.
+    - Exception: If there is an error retrieving AE.
     """
     path = vertical.path
     parent = "m2m:ae"
@@ -93,10 +105,12 @@ def get_aes(
         ]
         return aes
     except ET.ParseError:
-        return []
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error parsing XML",
+        )
     except Exception as e:
-        # print(f"An error occurred: {e}")
-        return []
+        raise HTTPException(status_code=500, detail=f"Error retrieving AE {e}")
 
 
 @router.delete("/delete-ae")
@@ -109,7 +123,9 @@ def delete_ae(
     This function deletes an AE resource in OM2M.
 
     Args:
-        ae_name (str): The name of the AE resource.
+        vertical (VerticalDelete): The vertical object containing the AE name to be deleted.
+        request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
 
     Returns:
         int: The status code of the request.

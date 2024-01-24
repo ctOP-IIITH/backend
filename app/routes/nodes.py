@@ -28,10 +28,15 @@ def create_node(
     Create an AE (Application Entity) with the given name and labels.
 
     Args:
+        node (NodeCreate): The data required to create a new node.
         request (Request): The HTTP request object.
+        session (Session): The database session.
 
     Returns:
         int: The status code of the operation.
+
+    Raises:
+        HTTPException: If the node already exists or if there is an error creating the node.
     """
     node_name = node.node_name
     new_node = DBNode(node_name=node_name, path=node.path)
@@ -61,7 +66,10 @@ def get_nodes(
     Retrieves the subcontainers for a given path.
 
     Parameters:
-    - path (str): The path to retrieve the subcontainers from.
+    - node (NodeGetAll): The node object containing the path to retrieve the subcontainers from.
+    - request (Request): The request object.
+    - current_user (optional): The current user.
+    - session (Session): The database session.
 
     Returns:
     - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
@@ -89,7 +97,10 @@ def get_nodes(
         ]
         return aes
     except ET.ParseError:
-        return []
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error parsing XML",
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -107,7 +118,9 @@ def delete_node(
     Deletes a node with the given name.
 
     Args:
+        node (NodeDelete): The node object containing the node name and path.
         request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
 
     Returns:
         int: The status code of the operation.
@@ -130,7 +143,9 @@ def delete_node(
 
     if 200 <= response.status_code < 300:
         # Delete the node from the database
-        node_to_delete = session.query(DBNode).filter(DBNode.node_name == node_name).first()
+        node_to_delete = (
+            session.query(DBNode).filter(DBNode.node_name == node_name).first()
+        )
         if node_to_delete:
             session.delete(node_to_delete)
             session.commit()
