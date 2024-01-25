@@ -81,6 +81,7 @@ class Om2m:
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
         }
+        print(f"{self.url}/{resource_path}")
         r = requests.delete(
             f"{self.url}/{resource_path}",
             headers=headers,

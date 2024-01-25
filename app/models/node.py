@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-class Node(Base):
+class   Node(Base):
     """
     This class defines the Node model.
     """

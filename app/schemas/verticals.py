@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class VerticalCreate(BaseModel):
     ae_name: str
     path: str
+    labels: list = []
 
 
 class VerticalGetAll(BaseModel):

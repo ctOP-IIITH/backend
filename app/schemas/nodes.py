@@ -7,8 +7,15 @@ class NodeCreate(BaseModel):
     """
 
     node_name: str
-    labels: list
+    lbls: list = []
     path: str
+    sensor_type_id: int
+    sensor_node_number: int
+    lat: float
+    long: float
+    location: str
+    landmark: str
+    area: str
 
 
 class NodeGetAll(BaseModel):

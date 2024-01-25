@@ -9,7 +9,7 @@ from app.utils.om2m import Om2m
 import xml.etree.ElementTree as ET
 from app.schemas.nodes import NodeCreate, NodeGetAll, NodeDelete
 from app.models.node import Node as DBNode
-
+from app.models.sensor_types import SensorTypes as DBSensorType
 
 router = APIRouter()
 
@@ -22,7 +22,10 @@ om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
 @token_required
 @admin_required
 def create_node(
-    node: NodeCreate, request: Request, session: Session = Depends(get_session)
+    node: NodeCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Create an AE (Application Entity) with the given name and labels.
@@ -38,13 +41,55 @@ def create_node(
     Raises:
         HTTPException: If the node already exists or if there is an error creating the node.
     """
+    # ! TODO: Make the sensor type a cin in Descriptor
     node_name = node.node_name
-    new_node = DBNode(node_name=node_name, path=node.path)
+    # ! TODO: insert a entity of DBNode
+    # new_node = DBNode(orid=node_name, path=node.path)
     response = om2m.create_container(node_name, node.path, labels=[node_name])
+    assigned_token_num = 0
+    # ! TODO: Generate a token number
+    # ! TODO: Verify the database..
+
+    new_node = DBNode(
+        node_name=node.node_name,
+        labels=node.labels,
+        sensor_type_id=node.sensor_type_id,
+        sensor_node_number=node.sensor_node_number,
+        lat=node.lat,
+        long=node.long,
+        location=node.location,
+        landmark=node.landmark,
+        area=node.area,
+        orid=response.json()["m2m:ae"]["ri"].split("/")[-1],
+        token_num=assigned_token_num,
+    )
     if response.status_code == 201:
-        session.add(new_node)
-        session.commit()
-        return response.status_code
+        res_data = om2m.create_container(
+            "Data", f"{node.path}/{node_name}", labels=["Data", node_name]
+        )
+        res_desc = om2m.create_container(
+            "Descriptor", f"{node.path}/{node_name}", labels=["Descriptor", node_name]
+        )
+        if res_data.status_code == 201 and res_desc.status_code == 201:
+            # session.add(new_node)
+            # session.commit()
+            con = (
+                session.query(DBSensorType)
+                .filter(DBSensorType.res_name == node_name)
+                .first()
+            )
+            if con:
+                data_types = con.data_types
+            else:
+                raise HTTPException(status_code=404, detail="Sensor type not found")
+            sensor = om2m.create_cin(node.path, "Data", con=data_types).status_code
+            if sensor == 201:
+                raise HTTPException(status_code=201, detail="Node created")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error creating node",
+                )
     elif response.status_code == 409:
         raise HTTPException(status_code=409, detail="Node already exists")
     else:
@@ -98,12 +143,12 @@ def get_nodes(
         return aes
     except ET.ParseError:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail="Error parsing XML",
         )
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Error retrieving nodes. {e}",
         )
 
@@ -112,7 +157,10 @@ def get_nodes(
 @token_required
 @admin_required
 def delete_node(
-    node: NodeDelete, request: Request, session: Session = Depends(get_session)
+    node: NodeDelete,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Deletes a node with the given name.
@@ -149,6 +197,7 @@ def delete_node(
         if node_to_delete:
             session.delete(node_to_delete)
             session.commit()
+            raise HTTPException(status_code=200, detail="Node deleted")
     else:
         raise HTTPException(
             status_code=response.status_code,

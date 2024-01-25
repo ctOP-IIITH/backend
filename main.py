@@ -14,6 +14,7 @@ from app.database import engine as database, get_session, Base, reset_database
 from app.auth.auth import get_hashed_password
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
+from app.routes.sensor_types import router as sensor_types_router
 
 app = FastAPI()
 
@@ -86,6 +87,7 @@ app.include_router(verticals_router, prefix="/verticals", tags=["Verticals"])
 app.include_router(nodes_router, prefix="/nodes", tags=["Nodes"])
 app.include_router(import_conf_router, prefix="/import", tags=["Import Configurations"])
 app.include_router(cin_router, prefix="/cin", tags=["Content Instance"])
+app.include_router(sensor_types_router, prefix="/sensor-types", tags=["Sensor Types"])
 
 # Include get_session as a dependency globally
 app.dependency_overrides[get_session] = get_session
