@@ -31,7 +31,8 @@ class Om2m:
             "Content-Type": "application/json;ty=2",
         }
 
-        r = requests.post(self.url, headers=headers, json=data, timeout=timeout)
+        r = requests.post(self.url, headers=headers,
+                          json=data, timeout=timeout)
         return r.status_code, r.text
 
     def create_container(self, name, parent, labels=None, mni=120, timeout=None):
@@ -119,8 +120,7 @@ class Om2m:
         )
         return r
 
-
-    def get_la_cin(self,resource_path, timeout=None):
+    def get_la_cin(self, resource_path, timeout=None):
         """
         Gets latest content instance in OM2M.
         """

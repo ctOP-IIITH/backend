@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
+from app.routes.token import router as token_router
 from app.models.user_types import UserType
 from app.models.user import User
 from app.database import engine as database, get_session, Base, reset_database
@@ -83,6 +84,7 @@ async def shutdown():
 app.include_router(user_router, prefix="/user")
 app.include_router(verticals_router, prefix="/verticals")
 app.include_router(import_conf_router, prefix="/import")
+app.include_router(token_router, prefix="/token")
 
 
 # Include get_session as a dependency globally
