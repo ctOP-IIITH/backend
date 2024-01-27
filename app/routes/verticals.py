@@ -5,11 +5,12 @@ from app.auth.auth import (
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
-import requests
 from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 import xml.etree.ElementTree as ET
-
+from app.models.vertical import Vertical as DBAE
+import json
+from app.utils.utils import gen_vertical_code
 
 router = APIRouter()
 
@@ -19,42 +20,86 @@ om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
 @router.post("/create-ae")
 @token_required
 @admin_required
-async def create_ae(vertical: VerticalCreate, request: Request, current_user=None):
+def create_ae(
+    vertical: VerticalCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
     """
     Create an AE (Application Entity) with the given name and labels.
 
     Args:
+        vertical (VerticalCreate): The data required to create the AE.
         request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
 
     Returns:
         int: The status code of the operation.
+
+    Raises:
+        HTTPException: If there is an error creating the AE or if the AE already exists.
     """
     ae_name = vertical.ae_name
-    status_code, data = om2m.create_ae(ae_name, labels=[ae_name])
-    return status_code
+    assigned_name = gen_vertical_code(vertical.ae_name)
+    if len(vertical.labels) == 0:
+        labels = [ae_name]
+    status_code, data = om2m.create_ae(assigned_name, vertical.path, labels=labels)
+    if status_code == 201:
+        res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
+        # TODO: Add the AE to the database
+        db_vertical = DBAE(res_name=assigned_name, labels=labels, orid=res_id)
+        session.add(db_vertical)
+        session.commit()
+        print("AE created")
+        raise HTTPException(status_code=201, detail="AE created")
+    elif status_code == 409:
+        raise HTTPException(status_code=409, detail="AE already exists")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating AE",
+        )
+    # return status_code
 
 
 @router.get("/get-aes")
 @token_required
-async def get_aes(vertical: VerticalGetAll, request: Request, current_user=None):
+def get_aes(
+    vertical: VerticalGetAll,
+    request: Request,
+    current_user=None,
+    session: Session = Depends(get_session),
+):
     """
     Retrieves the subcontainers for a given path.
 
     Parameters:
-    - path (str): The path to retrieve the subcontainers from.
+    - vertical (VerticalGetAll): The vertical object containing the path to retrieve the subcontainers from.
+    - request (Request): The request object.
+    - current_user (optional): The current user.
+    - session (Session): The database session.
 
     Returns:
     - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
+
+    Raises:
+    - HTTPException: If the path is not found or there is an error parsing XML.
+    - Exception: If there is an error retrieving AE.
     """
     path = vertical.path
     parent = "m2m:ae"
     is_direct_child = (
-        lambda element, root: element in root and len(
-            element.findall("..")) == 0
+        lambda element, root: element in root and len(element.findall("..")) == 0
     )
 
     try:
-        root = ET.fromstring(om2m.get_all_containers(path).text)
+        data = om2m.get_all_containers(path).text
+        if not data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Path not found"
+            )
+        root = ET.fromstring(data)
         m2m_ae_elements = root.findall(
             f".//{parent}", {"m2m": "http://www.onem2m.org/xml/protocols"}
         )
@@ -70,24 +115,57 @@ async def get_aes(vertical: VerticalGetAll, request: Request, current_user=None)
         ]
         return aes
     except ET.ParseError:
-        return []
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error parsing XML",
+        )
     except Exception as e:
-        # print(f"An error occurred: {e}")
-        return []
+        raise HTTPException(status_code=500, detail=f"Error retrieving AE {e}")
 
 
-@router.delete("/delete-ae/{ae_name}")
+@router.delete("/delete-ae")
 @token_required
 @admin_required
-async def delete_ae(vertical: VerticalDelete, request: Request, current_user=None):
+def delete_ae(
+    vertical: VerticalDelete,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
     """
     This function deletes an AE resource in OM2M.
 
     Args:
-        ae_name (str): The name of the AE resource.
+        vertical (VerticalDelete): The vertical object containing the AE name to be deleted.
+        request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
 
     Returns:
         int: The status code of the request.
     """
-    status_code = om2m.delete_resource(f"{vertical.ae_name}")
+    ae = session.query(DBAE).filter(DBAE.res_name == vertical.ae_name).first()
+    if ae is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
+        )
+    if vertical.path == "":
+        final_path = f"{vertical.ae_name}"
+    else:
+        final_path = f"{vertical.path}/{vertical.ae_name}"
+    status_code = om2m.delete_resource(final_path).status_code
+    print(status_code)
+    if status_code >= 200 and status_code < 300:
+        session.delete(ae)
+        session.commit()
+        raise HTTPException(status_code=200, detail="AE deleted")
+    elif status_code == 404:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error deleting AE",
+        )
+
     return status_code

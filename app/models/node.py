@@ -2,7 +2,8 @@
 This module defines the Node model.
 """
 
-from sqlalchemy import Column, Integer, String, Float,  ARRAY, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ARRAY, ForeignKey
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 

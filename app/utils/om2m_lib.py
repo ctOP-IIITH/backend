@@ -19,7 +19,7 @@ class Om2m:
         self.password = password
         self.url = url
 
-    def create_ae(self, name, labels=None, rr=False, timeout=None):
+    def create_ae(self, name, path, labels=None, rr=False, timeout=None):
         """
         Creates an Application Entity (AE) resource in OM2M.
         """
@@ -31,17 +31,19 @@ class Om2m:
             "Content-Type": "application/json;ty=2",
         }
 
-        r = requests.post(self.url, headers=headers,
-                          json=data, timeout=timeout)
+        print(f"{self.url}/{path}")
+        r = requests.post(
+            f"{self.url}/{path}", headers=headers, json=data, timeout=timeout
+        )
+        print(r.status_code, r.text)
         return r.status_code, r.text
 
-    def create_container(self, name, parent, labels=None, mni=120, timeout=None):
+    def create_container(self, name, path, labels=None, mni=120, timeout=None):
         """
-        Creates a container resource in OM2M.
+        Creates a node resource in OM2M.
         """
         if labels is None:
             labels = []
-        # Create Node
         data = {"m2m:cnt": {"rn": name, "lbl": labels, "mni": mni}}
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
@@ -49,23 +51,17 @@ class Om2m:
         }
 
         r = requests.post(
-            f"{self.url}/{parent}", headers=headers, json=data, timeout=timeout
+            f"{self.url}/{path}", headers=headers, json=data, timeout=timeout
         )
+        return r
 
-        # Create Data Container inside Node
-        data = {"m2m:cnt": {"rn": "Data", "lbl": labels, "mni": mni}}
-
-        r = requests.post(
-            f"{self.url}/{parent}/{name}", headers=headers, json=data, timeout=timeout
-        )
-
-        return r.status_code, r.text
-
-    def create_cin(self, parent, node, con, lbl, cnf, timeout=None):
+    def create_cin(self, parent, node, con, lbl=None, timeout=None):
         """
         Creates a content instance resource in OM2M.
         """
-        data = {"m2m:cin": {"con": con, "lbl": lbl, "cnf": cnf}}
+        if lbl is None:
+            lbl = [node]
+        data = {"m2m:cin": {"con": con, "lbl": lbl}}
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
             "Content-Type": "application/json;ty=4",
@@ -85,6 +81,7 @@ class Om2m:
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
         }
+        print(f"{self.url}/{resource_path}")
         r = requests.delete(
             f"{self.url}/{resource_path}",
             headers=headers,
@@ -100,9 +97,7 @@ class Om2m:
             "X-M2M-Origin": f"{self.username}:{self.password}",
         }
         r = requests.get(
-            f"{self.url}/{resource_path}?rcn=4",
-            headers=headers,
-            timeout=timeout
+            f"{self.url}/{resource_path}?rcn=4", headers=headers, timeout=timeout
         )
         return r
 
@@ -130,20 +125,6 @@ class Om2m:
 
         r = requests.get(
             f"{self.url}/{resource_path}/la",
-            headers=headers,
-            timeout=timeout,
-        )
-        return r
-
-    def get_descriptor_la(self, resource_path, timeout=None):
-        """
-        Get the latest descriptor of a resource in OM2M.
-        """
-        headers = {
-            "X-M2M-Origin": f"{self.username}:{self.password}",
-        }
-        r = requests.get(
-            f"{self.url}/{resource_path}/Descriptor/la",
             headers=headers,
             timeout=timeout,
         )
