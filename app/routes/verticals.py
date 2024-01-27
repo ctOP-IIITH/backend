@@ -72,7 +72,7 @@ def get_aes(
     session: Session = Depends(get_session),
 ):
     """
-    Retrieves the subcontainers for a given path.
+    Retrieves the Application Entities in a given path.
 
     Parameters:
     - vertical (VerticalGetAll): The vertical object containing the path to retrieve the subcontainers from.
@@ -105,10 +105,8 @@ def get_aes(
         )
         first_level_ae_elements = []
         for ae_element in m2m_ae_elements:
-            # print(ae_element)
             if is_direct_child(ae_element, root):
                 first_level_ae_elements.append(ae_element)
-        # print(first_level_ae_elements)
         aes = [
             {"rn": ae_element.get("rn"), "ri": ae_element.find("ri").text}
             for ae_element in first_level_ae_elements

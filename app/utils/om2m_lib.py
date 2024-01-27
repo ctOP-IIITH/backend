@@ -67,7 +67,7 @@ class Om2m:
             "Content-Type": "application/json;ty=4",
         }
         r = requests.post(
-            f"{self.url}/{parent}/{node}/Data",
+            f"{self.url}/{parent}/{node}",
             headers=headers,
             json=data,
             timeout=timeout,

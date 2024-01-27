@@ -23,6 +23,7 @@ def create_sensor_type(
     sensor_type: SensorTypeCreate,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     try:
         sensor_type_name = sensor_type.res_name
@@ -33,10 +34,12 @@ def create_sensor_type(
             labels=sensor_type.labels,
             vertical_id=sensor_type.vertical_id,
         )
+        print(new_sensor_type)
         session.add(new_sensor_type)
         session.commit()
-        raise HTTPException(status_code=201, detail="Sensor type created")
+        return {"detail": "Sensor type created"}
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating sensor type",
@@ -50,18 +53,24 @@ def get_sensor_types(
     sensor_type: SensorTypeGetAll,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     try:
-        sensor_types = session.query(DBSensorType).filter(
-            DBSensorType.vertical_id == sensor_type.vertical_id
+        sensor_types = (
+            session.query(DBSensorType)
+            .filter(DBSensorType.vertical_id == sensor_type.vertical_id)
+            .all()
         )
         if sensor_types is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
             )
+        elif len(sensor_types) == 0:
+            return {"detail": "No sensor types found"}
         else:
             return sensor_types
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error getting sensor types",
@@ -74,6 +83,7 @@ def get_sensor_type(
     sensor_type: SensorTypeGet,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     try:
         sensor_type = (
@@ -81,6 +91,7 @@ def get_sensor_type(
             .filter(DBSensorType.id == sensor_type.id)
             .first()
         )
+        print(sensor_type)
         if sensor_type is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Sensor type not found"
@@ -90,7 +101,7 @@ def get_sensor_type(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error getting sensor type",
+            detail=f"Error getting sensor type {e}",
         )
 
 
@@ -101,6 +112,7 @@ def delete_sensor_type(
     sensor_type: SensorTypeDelete,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     try:
         sensor_type = (

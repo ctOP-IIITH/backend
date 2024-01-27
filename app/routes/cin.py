@@ -5,7 +5,7 @@ from app.auth.auth import (
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
-from app.utils.om2m import Om2m
+from app.utils.om2m_lib import Om2m
 from app.schemas.cin import (
     ContentInstance,
     ContentInstanceGetAll,
@@ -25,6 +25,7 @@ def create_cin(
     token_id: str,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Create a CIN (Content Instance) with the given name and labels.
@@ -71,6 +72,7 @@ def get_cins(
     cin: ContentInstanceGetAll,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Retrieve all Content Instances (CINs) from the specified path.
@@ -126,6 +128,7 @@ def delete_cin(
     cin: ContentInstanceDelete,
     request: Request,
     session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Deletes a resource in OM2M.

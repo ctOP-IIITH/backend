@@ -29,8 +29,7 @@ def insert_vertical(vertical: Vertical, db: Session):
     Create a vertical in the database.
     Check if the vertical already exists in the database. If it does, return it."""
 
-    res = db.query(DBVertical).filter(
-        DBVertical.res_name == vertical.name).first()
+    res = db.query(DBVertical).filter(DBVertical.res_name == vertical.name).first()
 
     if res is not None:
         return res
@@ -130,8 +129,7 @@ def insert_all_node(area: Area, db: Session):
             vert_orid = gen_vertical_code(vert_name)
 
             try:
-                _, mesg = om2m.create_container(
-                    res_id, vert_orid, labels=sensor.labels)
+                _, mesg = om2m.create_container(res_id, vert_orid, labels=sensor.labels)
                 print(mesg)
 
             except Exception as e:
@@ -158,8 +156,7 @@ def insert_all_node(area: Area, db: Session):
                 long=sensor.coordinates.longitude,
                 location=loc.name,
                 area=area.area,
-                sensor_node_number=get_next_sensor_node_number(
-                    sensor_type_id, db),
+                sensor_node_number=get_next_sensor_node_number(sensor_type_id, db),
                 orid=res_id,
             )
 

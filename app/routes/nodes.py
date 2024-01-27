@@ -5,7 +5,7 @@ from app.auth.auth import (
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
-from app.utils.om2m import Om2m
+from app.utils.om2m_lib import Om2m
 import xml.etree.ElementTree as ET
 from app.schemas.nodes import NodeCreate, NodeGetAll, NodeDelete
 from app.models.node import Node as DBNode
@@ -28,7 +28,7 @@ def create_node(
     current_user=None,
 ):
     """
-    Create an AE (Application Entity) with the given name and labels.
+    Create an Node (Container) with the given name and labels.
 
     Args:
         node (NodeCreate): The data required to create a new node.
@@ -41,48 +41,53 @@ def create_node(
     Raises:
         HTTPException: If the node already exists or if there is an error creating the node.
     """
+    con = (
+        session.query(DBSensorType)
+        .filter(DBSensorType.id == node.sensor_type_id)
+        .first()
+    )
+    if con is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Sensor type not found"
+        )
     # ! TODO: Make the sensor type a cin in Descriptor
     node_name = node.node_name
-    # ! TODO: insert a entity of DBNode
-    # new_node = DBNode(orid=node_name, path=node.path)
     response = om2m.create_container(node_name, node.path, labels=[node_name])
     assigned_token_num = 0
     # ! TODO: Generate a token number
     # ! TODO: Verify the database..
 
     new_node = DBNode(
-        node_name=node.node_name,
-        labels=node.labels,
+        labels=node.lbls,
         sensor_type_id=node.sensor_type_id,
         sensor_node_number=node.sensor_node_number,
         lat=node.lat,
         long=node.long,
         location=node.location,
-        landmark=node.landmark,
         area=node.area,
-        orid=response.json()["m2m:ae"]["ri"].split("/")[-1],
+        orid=response.json()["m2m:cnt"]["ri"].split("/")[-1],
         token_num=assigned_token_num,
     )
     if response.status_code == 201:
         res_data = om2m.create_container(
-            "Data", f"{node.path}/{node_name}", labels=["Data", node_name]
+            "Data", f"{node.path}/{node.node_name}", labels=["Data", node.node_name]
         )
         res_desc = om2m.create_container(
-            "Descriptor", f"{node.path}/{node_name}", labels=["Descriptor", node_name]
+            "Descriptor",
+            f"{node.path}/{node.node_name}",
+            labels=["Descriptor", node.node_name],
         )
         if res_data.status_code == 201 and res_desc.status_code == 201:
-            # session.add(new_node)
-            # session.commit()
-            con = (
-                session.query(DBSensorType)
-                .filter(DBSensorType.res_name == node_name)
-                .first()
-            )
+            session.add(new_node)
+            session.commit()
             if con:
-                data_types = con.data_types
+                data_types = str(con.data_types)
             else:
                 raise HTTPException(status_code=404, detail="Sensor type not found")
-            sensor = om2m.create_cin(node.path, "Data", con=data_types).status_code
+            sensor = om2m.create_cin(
+                f"{node.path}/{node.node_name}", "Descriptor", con=data_types
+            ).status_code
+            print(sensor)
             if sensor == 201:
                 raise HTTPException(status_code=201, detail="Node created")
             else:
