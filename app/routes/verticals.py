@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
 import requests
-from app.utils.om2m import Om2m
+from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 import xml.etree.ElementTree as ET
 
@@ -49,7 +49,8 @@ async def get_aes(vertical: VerticalGetAll, request: Request, current_user=None)
     path = vertical.path
     parent = "m2m:ae"
     is_direct_child = (
-        lambda element, root: element in root and len(element.findall("..")) == 0
+        lambda element, root: element in root and len(
+            element.findall("..")) == 0
     )
 
     try:
