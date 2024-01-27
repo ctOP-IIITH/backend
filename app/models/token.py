@@ -21,10 +21,11 @@ class Token(Base):
 
     issue_time = Column(DateTime, default=datetime.datetime.now)
 
-    def __init__(self, node_type, token_id, assigned_to):
-        self.node_type = node_type
-        self.token_id = token_id  # TODO: Generate token_id from global counter
+    def __init__(self, sensor_type, token_id, assigned_to):
+        self.sensor_type = sensor_type
+        self.token_id = token_id
         self.assigned_to = assigned_to
+        self.status = False
         self.issue_time = datetime.datetime.now()
 
     def __repr__(self):

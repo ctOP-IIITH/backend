@@ -48,6 +48,7 @@ def insert_vertical(vertical: Vertical, db: Session):
 
     try:
         _, mesg = om2m.create_ae(orid, labels=vertical.labels)
+        print(mesg)
 
     except Exception as e:
         print(e)
@@ -203,6 +204,7 @@ def import_conf(request: Request, db: Session = Depends(get_session)):
         print(e)
         return e
 
+    error = False
     for loc in area.locations:
         for sensor in loc.sensors:
             if sensor.sensor_type not in sensor_types:
