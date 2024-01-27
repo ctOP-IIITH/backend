@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-class   Node(Base):
+class Node(Base):
     """
     This class defines the Node model.
     """
@@ -25,7 +25,6 @@ class   Node(Base):
     lat = Column(Float, nullable=True)
     long = Column(Float, nullable=True)
     location = Column(String(100), nullable=True)
-    landmark = Column(String(100), nullable=True)
     area = Column(String(100), nullable=True)
     orid = Column(String(50), nullable=False)
 

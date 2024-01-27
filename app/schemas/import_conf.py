@@ -56,7 +56,6 @@ class Location(BaseModel):
     """
 
     name: str
-    landmark: str
     sensors: list[Node]
 
 
@@ -67,5 +66,3 @@ class Area(BaseModel):
 
     area: str
     locations: list[Location]
-
-

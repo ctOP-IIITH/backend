@@ -77,11 +77,10 @@ def get_node_code(vert: str, sensor_type: int, lat: int, long: int, db: Session)
 
     # NOTE: Takes a lot of time to complete
     pin_code = get_pincode(lat, long)
-    if pin_code is None:
-        pin_code = "000000"
+    pin_code = str(pin_code)[-4:] if pin_code else "0000"
 
     sensor_node_number = get_next_sensor_node_number(sensor_type, db),
 
-    code = f"{vert_code}{sensor_type:02d}-{pin_code:06}-{sensor_node_number[0]:04d}"
+    code = f"{vert_code}{sensor_type:02d}-{pin_code:04}-{sensor_node_number[0]:04d}"
 
     return code

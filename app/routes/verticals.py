@@ -5,7 +5,7 @@ from app.auth.auth import (
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_session
-from app.utils.om2m import Om2m
+from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 import xml.etree.ElementTree as ET
 from app.models.vertical import Vertical as DBAE

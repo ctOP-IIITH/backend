@@ -10,7 +10,7 @@
                         "latitude": 17.446919,
                         "longitude": 78.348122
                     },
-                    "sensor_type": "Kristna",
+                    "sensor_type": "Kristnam",
                     "labels": [
                         "IIIT",
                         "IIITH"
@@ -34,7 +34,7 @@
                         "latitude": 4.455,
                         "longitude": 8.3499
                     },
-                    "sensor_type": "Kristna"
+                    "sensor_type": "Kristnam"
                 }
             ]
         }

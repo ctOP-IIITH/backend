@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
+from app.routes.token import router as token_router
 from app.models.user_types import UserType
 from app.models.user import User
 from app.database import engine as database, get_session, Base, reset_database
@@ -88,6 +89,7 @@ app.include_router(nodes_router, prefix="/nodes", tags=["Nodes"])
 app.include_router(import_conf_router, prefix="/import", tags=["Import Configurations"])
 app.include_router(cin_router, prefix="/cin", tags=["Content Instance"])
 app.include_router(sensor_types_router, prefix="/sensor-types", tags=["Sensor Types"])
+app.include_router(token_router, prefix="/token")
 
 # Include get_session as a dependency globally
 app.dependency_overrides[get_session] = get_session
