@@ -1,22 +1,25 @@
+import xml.etree.ElementTree as ET
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.orm import Session
+
 from app.auth.auth import (
     token_required,
     admin_required,
 )
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
 from app.database import get_session
 from app.utils.om2m_lib import Om2m
+from app.utils.utils import get_vertical_name
 from app.schemas.cin import (
     ContentInstance,
     ContentInstanceGetAll,
     ContentInstanceDelete,
 )
-import xml.etree.ElementTree as ET
 from app.models.node import Node as DBNode
+from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 
 router = APIRouter()
 
-om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
+om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 
 
 @router.post("/create/{token_id}")
@@ -42,16 +45,18 @@ def create_cin(
     Raises:
         HTTPException: If the node token is not found, CIN already exists, or there is an error creating CIN.
     """
+    _, _ = current_user, request
     node = session.query(DBNode).filter(DBNode.token_num == token_id).first()
     if node is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Node token not found"
         )
-    node_id = node.id
+    vertical_name = get_vertical_name(node.sensor_type_id, session)
+    print(node.orid, vertical_name)
 
     response = om2m.create_cin(
-        cin.path,
-        node_id,
+        None,
+        node.node_data_orid,
         cin.con,
         lbl=cin.lbl,
     )

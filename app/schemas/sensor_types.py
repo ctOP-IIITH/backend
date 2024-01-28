@@ -19,7 +19,7 @@ class SensorTypeCreate(BaseModel):
     res_name: str
     parameters: list
     data_types: list
-    labels: list
+    labels: list = []
     vertical_id: int
 
 

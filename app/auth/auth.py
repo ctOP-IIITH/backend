@@ -179,6 +179,7 @@ def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         user = kwargs.get("current_user")
+        print(user)
         if user.user_type != UserType.ADMIN.value:
             raise HTTPException(
                 status_code=403, detail="You are not authorized to access this resource"

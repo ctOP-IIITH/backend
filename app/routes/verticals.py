@@ -1,20 +1,23 @@
+import xml.etree.ElementTree as ET
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.orm import Session
 from app.auth.auth import (
     token_required,
     admin_required,
 )
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+
 from app.database import get_session
+from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
-import xml.etree.ElementTree as ET
 from app.models.vertical import Vertical as DBAE
-import json
 from app.utils.utils import gen_vertical_code
 
 router = APIRouter()
 
-om2m = Om2m("admin", "admin", "http://localhost:8080/~/in-cse/in-name")
+om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 
 
 @router.post("/create-ae")
@@ -40,15 +43,20 @@ def create_ae(
     Raises:
         HTTPException: If there is an error creating the AE or if the AE already exists.
     """
-    ae_name = vertical.ae_name
+    _, _ = current_user, request
     assigned_name = gen_vertical_code(vertical.ae_name)
     if len(vertical.labels) == 0:
-        labels = [ae_name]
+        labels = [vertical.ae_name]
     status_code, data = om2m.create_ae(assigned_name, vertical.path, labels=labels)
+    print("Here too", status_code, data)
     if status_code == 201:
         res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
-        # TODO: Add the AE to the database
-        db_vertical = DBAE(res_name=assigned_name, labels=labels, orid=res_id)
+        db_vertical = DBAE(
+            res_name=assigned_name,
+            labels=labels,
+            orid=res_id,
+            description=vertical.ae_description,
+        )
         session.add(db_vertical)
         session.commit()
         print("AE created")
@@ -58,7 +66,7 @@ def create_ae(
     else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating AE",
+            detail="Error creating AE " + str(status_code),
         )
     # return status_code
 

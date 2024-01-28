@@ -2,7 +2,7 @@
 This module defines the Sensor types model.
 """
 
-from sqlalchemy import Column, Integer, String, ARRAY, ForeignKey
+from sqlalchemy import Column, Integer, String, ARRAY, ForeignKey, UniqueConstraint
 from app.database import Base
 
 
@@ -18,9 +18,11 @@ class SensorTypes(Base):
     parameters = Column(ARRAY(String(50)), nullable=False)
     data_types = Column(ARRAY(String(50)), nullable=False)
     labels = Column(ARRAY(String(50)), nullable=False)
-
     vertical_id = Column(Integer, ForeignKey("verticals.id"))
-    # verticals = relationship("Vertical", back_populates="sensor_types")
+    # combination of vertical_id and res_name should be unique
+    __table_args__ = (
+        UniqueConstraint("vertical_id", "res_name", name="unique_sensor_type"),
+    )
 
     def __repr__(self):
         return f"<Sensor Type (id = {self.id}, res_name = {self.res_name}>, parameters={self.parameters},data_types = {self.data_types}, labels= {self.labels}, vertical_id= {self.vertical_id} )"

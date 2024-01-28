@@ -31,7 +31,7 @@ class Om2m:
             "Content-Type": "application/json;ty=2",
         }
 
-        print(f"{self.url}/{path}")
+        print(f"{self.url}/{path}", headers, data)
         r = requests.post(
             f"{self.url}/{path}", headers=headers, json=data, timeout=timeout
         )
@@ -66,8 +66,13 @@ class Om2m:
             "X-M2M-Origin": f"{self.username}:{self.password}",
             "Content-Type": "application/json;ty=4",
         }
+        url = f"{self.url}/{parent}/{node}"
+        if parent == "" or parent is None:
+            # Now we have direct ri so we also remove /in-name
+            url = self.url.replace("/in-name", "") + f"/{node}"
+        print(url, headers, data)
         r = requests.post(
-            f"{self.url}/{parent}/{node}",
+            url,
             headers=headers,
             json=data,
             timeout=timeout,

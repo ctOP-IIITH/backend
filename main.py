@@ -16,10 +16,10 @@ from app.auth.auth import get_hashed_password
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
 from app.routes.sensor_types import router as sensor_types_router
+from app.config.settings import OM2M_URL
 
 app = FastAPI()
 
-OM2M_URL = "http://localhost:8080/~/in-cse/in-name"
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,

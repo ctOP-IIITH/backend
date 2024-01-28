@@ -25,6 +25,7 @@ def create_sensor_type(
     session: Session = Depends(get_session),
     current_user=None,
 ):
+    _, _ = current_user, request
     try:
         sensor_type_name = sensor_type.res_name
         new_sensor_type = DBSensorType(
@@ -43,7 +44,7 @@ def create_sensor_type(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating sensor type",
-        )
+        ) from e
 
 
 @router.get("/get-all")

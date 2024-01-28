@@ -15,6 +15,7 @@ class Vertical(Base):
 
     id = Column(Integer, primary_key=True)
     res_name = Column(String(50), nullable=False)
+    description = Column(String(50), nullable=True)
     labels = Column(ARRAY(String(50)), nullable=True)
     orid = Column(String(50), nullable=False)
 

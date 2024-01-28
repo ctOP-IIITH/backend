@@ -10,9 +10,9 @@ class ContentInstance(BaseModel):
         con (str): The content of the instance.
         lbl (list): The labels associated with the instance.
     """
-    path: str
+
     con: str
-    lbl: list
+    lbl: list = []
 
 
 class ContentInstanceGetAll(BaseModel):
@@ -22,6 +22,7 @@ class ContentInstanceGetAll(BaseModel):
     Attributes:
         path (str): The path to the content instances.
     """
+
     path: str
 
 
@@ -34,6 +35,7 @@ class ContentInstanceDelete(BaseModel):
         cin_id (str): The ID of the content instance.
         node_id (str): The ID of the node associated with the content instance.
     """
+
     path: str
     cin_id: str
     node_id: str

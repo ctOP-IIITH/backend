@@ -28,7 +28,10 @@ router = APIRouter()
 @token_required
 @admin_required
 def register_user(
-    user: UserCreate, session: Session = Depends(get_session), current_user=None
+    user: UserCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
 ):
     """
     Registers a new user.
@@ -43,7 +46,7 @@ def register_user(
     Returns:
         dict: A dictionary containing a success message.
     """
-    _ = current_user
+    _, _ = current_user, request
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")

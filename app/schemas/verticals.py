@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class VerticalCreate(BaseModel):
     ae_name: str
+    ae_description: str
     path: str
     labels: list = []
 

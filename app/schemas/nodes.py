@@ -6,15 +6,10 @@ class NodeCreate(BaseModel):
     Pydantic model for creating a new node.
     """
 
-    node_name: str
     lbls: list = []
-    path: str
     sensor_type_id: int
-    sensor_node_number: int
-    lat: float
-    long: float
-    location: str
-    landmark: str
+    latitude: float
+    longitude: float
     area: str
 
 

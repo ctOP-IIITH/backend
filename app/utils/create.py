@@ -37,7 +37,7 @@ def insert_vertical(vertical: Vertical, db: Session):
     orid = gen_vertical_code(vertical.name)
 
     try:
-        _, mesg = om2m.create_ae(orid, labels=vertical.labels)
+        _, mesg = om2m.create_ae(orid, path="", labels=vertical.labels)
         print(mesg)
 
     except Exception as e:
