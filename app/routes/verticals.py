@@ -71,10 +71,24 @@ def create_ae(
     # return status_code
 
 
+@router.get("/all")
+@token_required
+def get_all(
+    request: Request,
+    current_user=None,
+    session: Session = Depends(get_session),
+):
+    """
+    Retrieves all the verticals in the database.
+    """
+    _, _ = current_user, request
+    verticals = session.query(DBAE).all()
+    return verticals
+
+
 @router.get("/get-aes")
 @token_required
 def get_aes(
-    vertical: VerticalGetAll,
     request: Request,
     current_user=None,
     session: Session = Depends(get_session),
@@ -95,14 +109,13 @@ def get_aes(
     - HTTPException: If the path is not found or there is an error parsing XML.
     - Exception: If there is an error retrieving AE.
     """
-    path = vertical.path
     parent = "m2m:ae"
     is_direct_child = (
         lambda element, root: element in root and len(element.findall("..")) == 0
     )
 
     try:
-        data = om2m.get_all_containers(path).text
+        data = om2m.get_all_containers().text
         if not data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Path not found"

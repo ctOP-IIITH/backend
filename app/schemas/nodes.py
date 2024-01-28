@@ -13,14 +13,6 @@ class NodeCreate(BaseModel):
     area: str
 
 
-class NodeGetAll(BaseModel):
-    """
-    Pydantic model for getting all nodes.
-    """
-
-    path: str
-
-
 class NodeDelete(BaseModel):
     """
     Pydantic model for deleting a node.

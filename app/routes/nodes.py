@@ -14,7 +14,8 @@ from app.utils.utils import (
     get_next_sensor_node_number,
     get_node_code,
 )
-from app.schemas.nodes import NodeCreate, NodeGetAll, NodeDelete
+from app.schemas.nodes import NodeCreate, NodeDelete
+from app.models.vertical import Vertical as DBVertical
 from app.models.node import Node as DBNode
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
@@ -133,11 +134,56 @@ def create_node(
         )
 
 
-@router.get("/get-nodes")
+@router.get("/{path}")
+@token_required
+def get_node(
+    path: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    """
+    Retrieves the node with the given name.
+
+    Args:
+        path (str): The path of the node.
+        request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
+
+    Returns:
+        dict: The node object.
+    """
+    _, _ = current_user, request
+    # get vertical id
+    vert_id = session.query(DBVertical).filter(DBVertical.res_name == path).first()
+    if vert_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Vertical not found"
+        )
+    # get all sensor types for the vertical
+    sensor_types = (
+        session.query(DBSensorType).filter(DBSensorType.vertical_id == vert_id.id).all()
+    )
+    if sensor_types is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No sensor types found"
+        )
+    # get all nodes for the sensor types
+    nodes = []
+    for sensor_type in sensor_types:
+        nodes.extend(
+            session.query(DBNode).filter(DBNode.sensor_type_id == sensor_type.id).all()
+        )
+
+    return nodes
+
+
+# get nodename from path parameter
+@router.get("/get-node/{path}")
 @token_required
 def get_nodes(
-    node: NodeGetAll,
     request: Request,
+    path: str,
     current_user=None,
     session: Session = Depends(get_session),
 ):
@@ -153,7 +199,6 @@ def get_nodes(
     Returns:
     - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
     """
-    path = node.path
     parent = "m2m:cnt"
     is_direct_child = (
         lambda element, root: element in root and len(element.findall("..")) == 0
