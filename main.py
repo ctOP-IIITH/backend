@@ -41,7 +41,14 @@ async def startup():
     try:
         database.connect()
         db = next(get_session())
+
+        # ########################################################
+        # ## WARNING: DO NOT UNCOMMENT THE FOLLOWING LINE      ##
+        # ## UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING!       ##
+        # ## THIS COULD POTENTIALLY CAUSE SERIOUS ISSUES.      ##
+        # ########################################################
         # reset_database()
+
         # check if admin user exists email or username
         user = db.query(User).filter(User.username == "admin").first()
         if not user:
