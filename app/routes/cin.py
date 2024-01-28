@@ -15,6 +15,7 @@ from app.schemas.cin import (
     ContentInstanceDelete,
 )
 from app.models.node import Node as DBNode
+from app.models.sensor_types import SensorTypes as DBSensorType
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 
 router = APIRouter()
@@ -54,11 +55,48 @@ def create_cin(
     vertical_name = get_vertical_name(node.sensor_type_id, session)
     print(node.orid, vertical_name)
 
+    sensor_type = (
+        session.query(DBSensorType)
+        .filter(DBSensorType.id == node.sensor_type_id)
+        .first()
+    )
+    print(cin, sensor_type)
+    cin = cin.dict()
+    con = []
+    # check if all of sensor_type.paramaters are in cin
+    # if not, raise error
+    # if it is then check if datatype matches with sensor_type.data_tpes[idx]
+    for idx, param in enumerate(sensor_type.parameters):
+        print(idx, param, cin, param in cin)
+        if param not in cin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing parameter " + param,
+            )
+        expected_type = sensor_type.data_types[idx]
+        if expected_type == "str":
+            expected_type = str
+        elif expected_type == "int":
+            expected_type = int
+        elif expected_type == "float":
+            expected_type = float
+
+        if not isinstance(cin[param], expected_type):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Wrong data type for "
+                + param
+                + ". Expected "
+                + str(sensor_type.data_types[idx])
+                + " but got "
+                + str(type(cin[param])),
+            )
+        con.append(str(cin[param]))
     response = om2m.create_cin(
         None,
         node.node_data_orid,
-        cin.con,
-        lbl=cin.lbl,
+        con,
+        lbl=list(cin.keys()),
     )
     if response.status_code == 201:
         return response.status_code

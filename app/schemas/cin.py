@@ -6,13 +6,11 @@ class ContentInstance(BaseModel):
     Represents a content instance.
 
     Attributes:
-        path (str): The path of the content instance.
-        con (str): The content of the instance.
-        lbl (list): The labels associated with the instance.
+        Can be any based on the sensor type.
     """
 
-    con: str
-    lbl: list = []
+    class Config:
+        extra = "allow"
 
 
 class ContentInstanceGetAll(BaseModel):
