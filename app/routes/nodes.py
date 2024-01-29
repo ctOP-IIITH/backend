@@ -154,26 +154,25 @@ def get_node(
         dict: The node object.
     """
     _, _ = current_user, request
-    # get vertical id
-    vert_id = session.query(DBVertical).filter(DBVertical.res_name == path).first()
-    if vert_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Vertical not found"
+
+    nodes = (
+        session.query(DBNode)
+        .join(DBSensorType, DBSensorType.id == DBNode.sensor_type_id)
+        .join(DBVertical, DBVertical.id == DBSensorType.vertical_id)
+        .filter(DBVertical.res_name == path)
+        .with_entities(
+            DBNode.node_name,
+            DBNode.orid,
+            DBNode.node_data_orid,
+            DBNode.area,
+            DBSensorType.res_name,
+            DBNode.sensor_node_number,
+            DBNode.lat,
+            DBNode.long,
+            DBNode.token_num,
         )
-    # get all sensor types for the vertical
-    sensor_types = (
-        session.query(DBSensorType).filter(DBSensorType.vertical_id == vert_id.id).all()
+        .all()
     )
-    if sensor_types is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No sensor types found"
-        )
-    # get all nodes for the sensor types
-    nodes = []
-    for sensor_type in sensor_types:
-        nodes.extend(
-            session.query(DBNode).filter(DBNode.sensor_type_id == sensor_type.id).all()
-        )
 
     return nodes
 
