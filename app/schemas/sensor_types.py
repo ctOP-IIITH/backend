@@ -34,19 +34,6 @@ class SensorTypeGetAll(BaseModel):
     vertical_id: int
 
 
-class SensorTypeGet(BaseModel):
-    """
-    Represents the schema for getting a specific sensor type.
-
-    Attributes:
-        id (int): The ID of the sensor type.
-        vertical_id (int): The ID of the vertical.
-    """
-
-    id: int
-    vertical_id: int
-
-
 class SensorTypeDelete(BaseModel):
     """
     Represents the schema for deleting a specific sensor type.

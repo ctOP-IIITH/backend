@@ -10,7 +10,6 @@ from app.schemas.sensor_types import (
     SensorTypeCreate,
     SensorTypeGetAll,
     SensorTypeDelete,
-    SensorTypeGet,
 )
 
 router = APIRouter()
@@ -78,27 +77,28 @@ def get_sensor_types(
         )
 
 
-@router.get("/get")
+@router.get("/get/{vert_id}")
 @token_required
 def get_sensor_type(
-    sensor_type: SensorTypeGet,
     request: Request,
+    vert_id: int,
     session: Session = Depends(get_session),
     current_user=None,
 ):
+    _, _ = current_user, request
     try:
-        sensor_type = (
+        sensor_types = (
             session.query(DBSensorType)
-            .filter(DBSensorType.id == sensor_type.id)
-            .first()
+            .filter(DBSensorType.vertical_id == vert_id)
+            .all()
         )
-        print(sensor_type)
-        if sensor_type is None:
+        print(sensor_types)
+        if sensor_types is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Sensor type not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
             )
         else:
-            return sensor_type
+            return sensor_types
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
