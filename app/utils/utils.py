@@ -21,7 +21,7 @@ def get_vertical_name(sensor_type: int, db: Session):
     )
     if res is None:
         return None
-    return res.res_name
+    return res.res_short_name
 
 
 def gen_vertical_code(vertical_name: str):
@@ -103,7 +103,7 @@ def get_node_code(vert: str, sensor_type: int, lat: int, long: int, db: Session)
     if not vert:
         raise Exception("Vertical not found")
 
-    vert_code = gen_vertical_code(vert.res_name)
+    vert_code = vert.res_short_name.split("AE-")[1]
 
     print("I am here, before pincode. I have the vert_code: ", vert_code)
     # NOTE: Takes a lot of time to complete
