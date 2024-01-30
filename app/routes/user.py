@@ -109,6 +109,30 @@ def login(request: RequestDetails, db: Session = Depends(get_session)):
     }
 
 
+@router.get("/profile")
+@token_required
+def profile(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
+    """
+    Returns the profile of the user.
+
+    Args:
+        session (Session, optional): The database session. Defaults to Depends(get_session()).
+
+    Returns:
+        dict: A dictionary containing the user's profile.
+    """
+    # use request to avoid pycharm warning
+    _ = request
+    user = session.query(User).filter(User.id == current_user.id).first()
+    return {
+        "username": user.username,
+        "email": user.email,
+        "user_type": user.user_type,
+    }
+
+
 @router.post("/token/refresh", response_model=TokenSchema)
 def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
     """

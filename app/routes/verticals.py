@@ -82,62 +82,6 @@ def get_all(
     return verticals
 
 
-@router.get("/get-aes")
-@token_required
-def get_aes(
-    request: Request,
-    current_user=None,
-    session: Session = Depends(get_session),
-):
-    """
-    Retrieves the Application Entities in a given path.
-
-    Parameters:
-    - vertical (VerticalGetAll): The vertical object containing the path to retrieve the subcontainers from.
-    - request (Request): The request object.
-    - current_user (optional): The current user.
-    - session (Session): The database session.
-
-    Returns:
-    - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
-
-    Raises:
-    - HTTPException: If the path is not found or there is an error parsing XML.
-    - Exception: If there is an error retrieving AE.
-    """
-    parent = "m2m:ae"
-    is_direct_child = (
-        lambda element, root: element in root and len(element.findall("..")) == 0
-    )
-
-    try:
-        data = om2m.get_all_containers().text
-        if not data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Path not found"
-            )
-        root = ET.fromstring(data)
-        m2m_ae_elements = root.findall(
-            f".//{parent}", {"m2m": "http://www.onem2m.org/xml/protocols"}
-        )
-        first_level_ae_elements = []
-        for ae_element in m2m_ae_elements:
-            if is_direct_child(ae_element, root):
-                first_level_ae_elements.append(ae_element)
-        aes = [
-            {"rn": ae_element.get("rn"), "ri": ae_element.find("ri").text}
-            for ae_element in first_level_ae_elements
-        ]
-        return aes
-    except ET.ParseError:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error parsing XML",
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving AE {e}")
-
-
 @router.delete("/delete-ae/{vert_id}")
 @token_required
 @admin_required
