@@ -13,5 +13,4 @@ class VerticalGetAll(BaseModel):
 
 
 class VerticalDelete(BaseModel):
-    path: str
     ae_name: str

@@ -138,12 +138,12 @@ def get_aes(
         raise HTTPException(status_code=500, detail=f"Error retrieving AE {e}")
 
 
-@router.delete("/delete-ae")
+@router.delete("/delete-ae/{vert_id}")
 @token_required
 @admin_required
 def delete_ae(
-    vertical: VerticalDelete,
     request: Request,
+    vert_id: int,
     session: Session = Depends(get_session),
     current_user=None,
 ):
@@ -158,21 +158,20 @@ def delete_ae(
     Returns:
         int: The status code of the request.
     """
-    ae = session.query(DBAE).filter(DBAE.res_name == vertical.ae_name).first()
+    _, _ = current_user, request
+    ae = session.query(DBAE).filter(DBAE.id == vert_id).first()
+    print(ae)
     if ae is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
         )
-    if vertical.path == "":
-        final_path = f"{vertical.ae_name}"
-    else:
-        final_path = f"{vertical.path}/{vertical.ae_name}"
+    final_path = f"{ae.res_short_name}"
     status_code = om2m.delete_resource(final_path).status_code
     print(status_code)
     if status_code >= 200 and status_code < 300:
         session.delete(ae)
         session.commit()
-        raise HTTPException(status_code=200, detail="AE deleted")
+        raise HTTPException(status_code=204, detail="AE deleted")
     elif status_code == 404:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
