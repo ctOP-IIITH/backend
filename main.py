@@ -14,6 +14,7 @@ from app.utils.initial_setup import initial_setup
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
 from app.routes.sensor_types import router as sensor_types_router
+from app.routes.stats import router as stats_router
 from app.config.settings import OM2M_URL
 
 app = FastAPI()
@@ -78,6 +79,7 @@ app.include_router(import_conf_router, prefix="/import", tags=["Import Configura
 app.include_router(cin_router, prefix="/cin", tags=["Content Instance"])
 app.include_router(sensor_types_router, prefix="/sensor-types", tags=["Sensor Types"])
 app.include_router(token_router, prefix="/token")
+app.include_router(stats_router, prefix="/stats")
 
 # Include get_session as a dependency globally
 app.dependency_overrides[get_session] = get_session
