@@ -13,7 +13,7 @@ from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
 from app.models.vertical import Vertical as DBAE
-from app.utils.utils import gen_vertical_code
+from app.utils.create import create_vertical
 
 router = APIRouter()
 
@@ -44,22 +44,18 @@ def create_ae(
         HTTPException: If there is an error creating the AE or if the AE already exists.
     """
     _, _ = current_user, request
-    assigned_name = gen_vertical_code(vertical.ae_name)
+    # assigned_name = gen_vertical_code(vertical.ae_name)
     if len(vertical.labels) == 0:
-        labels = [vertical.ae_name]
-    status_code, data = om2m.create_ae(assigned_name, vertical.path, labels=labels)
-    print("Here too", status_code, data)
+        vertical.labels = [vertical.ae_name]
+
+    status_code = create_vertical(
+        vertical.ae_name,
+        vertical.ae_short_name,
+        vertical.ae_description,
+        vertical.labels,
+        session,
+    )
     if status_code == 201:
-        res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
-        db_vertical = DBAE(
-            res_name=assigned_name,
-            labels=labels,
-            orid=res_id,
-            description=vertical.ae_description,
-        )
-        session.add(db_vertical)
-        session.commit()
-        print("AE created")
         raise HTTPException(status_code=201, detail="AE created")
     elif status_code == 409:
         raise HTTPException(status_code=409, detail="AE already exists")

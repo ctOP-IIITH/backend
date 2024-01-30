@@ -34,6 +34,7 @@ def reset_database():
 
         # Recreate all tables
         Base.metadata.create_all(bind=engine)
+    print("Database has been reset")
 
 
 engine = create_engine(DATABASE_URL, pool_size=3, max_overflow=0)

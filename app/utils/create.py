@@ -15,13 +15,34 @@ from app.utils.utils import (
     get_next_sensor_node_number,
     get_node_code,
 )
-from app.config.settings import OM2M_URL
+from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
+from app.models.vertical import Vertical as DBAE
+from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.models.vertical import Vertical as DBVertical
 from app.models.sensor_types import SensorTypes as DBSensorTypes
 from app.models.node import Node as DBNode
 
 
-om2m = Om2m("admin", "admin", OM2M_URL)
+om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+
+
+def create_vertical(vert_name, vert_short_name, vert_description, labels, db: Session):
+    vert_short_name = "AE-" + vert_short_name
+    status_code, data = om2m.create_ae(vert_short_name, "", labels=labels)
+    if status_code == 201:
+        res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
+        db_vertical = DBAE(
+            res_name=vert_name,
+            res_short_name=vert_short_name,
+            labels=labels,
+            orid=res_id,
+            description=vert_description,
+        )
+        db.add(db_vertical)
+        db.commit()
+        return 201
+    else:
+        return status_code
 
 
 def insert_vertical(vertical: Vertical, db: Session):

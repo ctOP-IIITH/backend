@@ -9,10 +9,8 @@ from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
 from app.routes.token import router as token_router
-from app.models.user_types import UserType
-from app.models.user import User
 from app.database import engine as database, get_session, Base, reset_database
-from app.auth.auth import get_hashed_password
+from app.utils.initial_setup import initial_setup
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
 from app.routes.sensor_types import router as sensor_types_router
@@ -46,27 +44,9 @@ async def startup():
         # ## WARNING: DO NOT UNCOMMENT THE FOLLOWING LINE      ##
         # ## UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING!       ##
         # ## THIS COULD POTENTIALLY CAUSE SERIOUS ISSUES.      ##
+        # ## ENSURE YOU MANUALLY CLEAR ONEM2M DB AFTER THIS.   ##
         # ########################################################
         # reset_database()
-
-        # check if admin user exists email or username
-        user = db.query(User).filter(User.username == "admin").first()
-        if not user:
-            user = db.query(User).filter(User.email == "admin@localhost").first()
-            if not user:
-                user = User(
-                    username="admin",
-                    email="admin@localhost",
-                    password=get_hashed_password("admin"),
-                    user_type=UserType.ADMIN.value,
-                )
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-            else:
-                print("Admin user already exists")
-        else:
-            print("Admin user already exists")
 
     except Exception as e:
         print(f"Error connecting to database: {e}")
@@ -75,6 +55,7 @@ async def startup():
     try:
         requests.get(OM2M_URL, timeout=5)
         print("Connection to OM2M successful.")
+        initial_setup(db)
 
     except requests.RequestException as e:
         print(f"Unable to connect to {OM2M_URL}. Error: {e}")
