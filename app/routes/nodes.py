@@ -298,12 +298,12 @@ def get_latest_cin(
             )
 
 
-@router.delete("/delete-node")
+@router.delete("/delete-node/{node_name}")
 @token_required
 @admin_required
 def delete_node(
-    node: NodeDelete,
     request: Request,
+    node_name: str,
     session: Session = Depends(get_session),
     current_user=None,
 ):
@@ -318,21 +318,35 @@ def delete_node(
     Returns:
         int: The status code of the operation.
     """
-    node_name = node.node_name
-    path = node.path
+    _, _ = current_user, request
+
     if not node_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Node name is missing",
         )
 
-    if not path:
+    # Fetch the node from the database
+    node = session.query(DBNode).filter(DBNode.node_name == node_name).first()
+    vertical = (
+        session.query(DBVertical)
+        .join(DBSensorType, DBSensorType.vertical_id == DBVertical.id)
+        .filter(DBSensorType.id == node.sensor_type_id)
+        .first()
+    )
+
+    if not node:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Path is missing",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Node not found",
+        )
+    if not vertical:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vertical not found",
         )
 
-    response = om2m.delete_resource(f"{path}/{node_name}")
+    response = om2m.delete_resource(f"{vertical.res_short_name}/{node_name}")
 
     if 200 <= response.status_code < 300:
         # Delete the node from the database
@@ -342,7 +356,7 @@ def delete_node(
         if node_to_delete:
             session.delete(node_to_delete)
             session.commit()
-            raise HTTPException(status_code=200, detail="Node deleted")
+            raise HTTPException(status_code=204, detail="Node deleted")
     else:
         raise HTTPException(
             status_code=response.status_code,
