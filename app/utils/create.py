@@ -28,6 +28,10 @@ om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 
 def create_vertical(vert_name, vert_short_name, vert_description, labels, db: Session):
     vert_short_name = "AE-" + vert_short_name
+    # check if vertical already exists
+    res = db.query(DBAE).filter(DBAE.res_name == vert_name).first()
+    if res is not None:
+        return 409
     status_code, data = om2m.create_ae(vert_short_name, "", labels=labels)
     if status_code == 201:
         res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
