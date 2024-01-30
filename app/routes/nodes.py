@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+import ast
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
@@ -198,37 +198,104 @@ def get_nodes(
     Returns:
     - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
     """
-    parent = "m2m:cnt"
-    is_direct_child = (
-        lambda element, root: element in root and len(element.findall("..")) == 0
+    _, _ = current_user, request
+
+    cur_node = (
+        session.query(DBNode)
+        .join(DBSensorType, DBSensorType.id == DBNode.sensor_type_id)
+        .join(DBVertical, DBVertical.id == DBSensorType.vertical_id)
+        .filter(DBNode.node_name == path)
+        .with_entities(
+            DBNode.node_name,
+            DBNode.orid,
+            DBNode.node_data_orid,
+            DBNode.area,
+            DBSensorType.res_name,
+            DBSensorType.parameters,
+            DBSensorType.data_types,
+            DBNode.sensor_node_number,
+            DBNode.lat,
+            DBNode.long,
+            DBNode.token_num,
+        )
+        .first()
     )
-
-    try:
-        root = ET.fromstring(om2m.get_all_containers(path).text)
-        m2m_cnt_elements = root.findall(
-            f".//{parent}", {"m2m": "http://www.onem2m.org/xml/protocols"}
-        )
-
-        first_level_cnt_elements = []
-        for cnt_element in m2m_cnt_elements:
-            if is_direct_child(cnt_element, root):
-                first_level_cnt_elements.append(cnt_element)
-
-        aes = [
-            {"rn": cnt_element.get("rn"), "ri": cnt_element.find("ri").text}
-            for cnt_element in first_level_cnt_elements
-        ]
-        return aes
-    except ET.ParseError:
+    # session.query(DBNode).filter(DBNode.node_name == path).first()
+    print(path, cur_node)
+    if cur_node is None:
         raise HTTPException(
-            status_code=500,
-            detail="Error parsing XML",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Node not found",
         )
-    except Exception as e:
+    data_orid = cur_node.node_data_orid
+    print(data_orid)
+    response = om2m.get_containers(ri=data_orid, all=True)
+
+    if response.status_code == 200:
+        all_data = response.json()
+
+        # Extract labels and content instances from the response
+        labels = all_data.get("m2m:cnt", {}).get("lbl", [])
+        content_instances = all_data.get("m2m:cnt", {}).get("m2m:cin", [])
+
+        # Prepare content instances data
+        cins = [(ast.literal_eval(x["con"]), x["lt"]) for x in content_instances]
+
+        # Merge current node data with labels and content instances
+        final_data = {**cur_node, "labels": labels, "cins": cins}
+        raise HTTPException(status_code=200, detail=final_data)
+    else:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving nodes. {e}",
+            status_code=response.status_code,
+            detail="Error getting node",
         )
+
+
+@router.get("/get-node/{path}/latest")
+def get_latest_cin(
+    path: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    """
+    Retrieves the latest content instance for a given path.
+
+    Returns:
+    - list: A list of dictionaries containing the "rn" and "ri" attributes of each subcontainer.
+    """
+    _, _ = current_user, request
+
+    cur_node = session.query(DBNode).filter(DBNode.node_name == path).first()
+    print(path, cur_node)
+    if cur_node is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Node not found",
+        )
+    data_orid = cur_node.node_data_orid
+    print(data_orid)
+    response = om2m.get_containers(ri=data_orid, all=True)
+
+    if response.status_code == 200:
+        la_url = response.json().get("m2m:cnt", {}).get("la", "")
+        # /in-cse/in-name/AE-WF/WATER_QUANTITY01-0000-0001/Data/la
+        # We need AE-WF/WATER_QUANTITY01-0000-0001/Data
+        la_url = "/".join(la_url.split("/")[-4:-1])
+        print(la_url)
+        r = om2m.get_la_cin(la_url)
+        if r.status_code == 200:
+            return r.json()
+        elif r.status_code == 404:
+            raise HTTPException(
+                status_code=r.status_code,
+                detail="No CIN found",
+            )
+        else:
+            raise HTTPException(
+                status_code=r.status_code,
+                detail="Error getting latest CIN",
+            )
 
 
 @router.delete("/delete-node")

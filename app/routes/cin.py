@@ -92,10 +92,11 @@ def create_cin(
                 + str(type(cin[param])),
             )
         con.append(str(cin[param]))
+        print(con)
     response = om2m.create_cin(
         None,
         node.node_data_orid,
-        con,
+        str(con),
         lbl=list(cin.keys()),
     )
     if response.status_code == 201:
@@ -106,61 +107,6 @@ def create_cin(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating CIN",
-        )
-
-
-@router.get("/get-cins")
-@token_required
-def get_cins(
-    cin: ContentInstanceGetAll,
-    request: Request,
-    session: Session = Depends(get_session),
-    current_user=None,
-):
-    """
-    Retrieve all Content Instances (CINs) from the specified path.
-
-    Args:
-        cin (ContentInstanceGetAll): The ContentInstanceGetAll model.
-        request (Request): The request object.
-        session (Session, optional): The database session. Defaults to Depends(get_session).
-
-    Returns:
-        List[Dict[str, str]]: A list of dictionaries containing the 'rn', 'ri', and 'con' attributes of each CIN.
-
-    Raises:
-        HTTPException: If there is an error retrieving the nodes.
-    """
-    path = cin.path
-    parent = "m2m:cin"
-    is_direct_child = (
-        lambda element, root: element in root and len(element.findall("..")) == 0
-    )
-
-    try:
-        root = ET.fromstring(om2m.get_all_containers(path).text)
-        m2m_cin_elements = root.findall(
-            f".//{parent}", {"m2m": "http://www.onem2m.org/xml/protocols"}
-        )
-
-        first_level_cin_elements = []
-        for cin_element in m2m_cin_elements:
-            if is_direct_child(cin_element, root):
-                first_level_cin_elements.append(cin_element)
-
-        cins = [
-            {
-                "rn": cin_element.get("rn"),
-                "ri": cin_element.find("ri").text,
-                "con": cin_element.find("con").text,
-            }
-            for cin_element in first_level_cin_elements
-        ]
-        return cins
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving nodes. {e}",
         )
 
 

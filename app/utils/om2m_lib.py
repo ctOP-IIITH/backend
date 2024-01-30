@@ -94,16 +94,22 @@ class Om2m:
         )
         return r
 
-    def get_all_containers(self, resource_path="", timeout=None):
+    def get_containers(self, resource_path="", ri=None, all=False, timeout=None):
         """
         Retrieves all containers from the OM2M server.
         """
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
+            "Content-Type": "application/json;ty=3",
         }
-        r = requests.get(
-            f"{self.url}/{resource_path}?rcn=4", headers=headers, timeout=timeout
-        )
+        url = f"{self.url}/{resource_path}"
+        if ri:
+            url = f"{self.url.replace('/in-name', '')}/{ri}"
+
+        if all:
+            url = f"{url}?rcn=4"
+
+        r = requests.get(url, headers=headers, timeout=timeout)
         return r
 
     def get_all_resource(self, resource_path: str, timeout=None):
@@ -126,8 +132,9 @@ class Om2m:
         """
         headers = {
             "X-M2M-Origin": f"{self.username}:{self.password}",
+            "Content-Type": "application/json;ty=4",
         }
-
+        print(f"{self.url}/{resource_path}/la")
         r = requests.get(
             f"{self.url}/{resource_path}/la",
             headers=headers,
