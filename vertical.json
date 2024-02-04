@@ -1,0 +1,34 @@
+{
+    "name": "WaterQuality",
+    "labels": [
+        "Water",
+        "Quality"
+    ],
+    "sensor_types": [
+        {
+            "name": "Kristnam",
+            "labels": [
+                "Water",
+                "Kristnam"
+            ],
+            "parameters": {
+                "Flow Volume": "num",
+                "Flow Rate": "float",
+                "pH": "int"
+            }
+        },
+        {
+            "name": "Ganga",
+            "parameters": {
+                "pH": "float"
+            }
+        },
+        {
+            "name": "Phillips",
+            "parameters": {
+                "value": "float",
+                "label": "string"
+            }
+        }
+    ]
+}

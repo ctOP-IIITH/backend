@@ -27,7 +27,12 @@ router = APIRouter()
 @router.post("/create-user")
 @token_required
 @admin_required
-def register_user(user: UserCreate, session: Session = Depends(get_session)):
+def register_user(
+    user: UserCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
     """
     Registers a new user.
 
@@ -41,6 +46,7 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
     Returns:
         dict: A dictionary containing a success message.
     """
+    _, _ = current_user, request
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -51,7 +57,7 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
         username=user.username,
         email=user.email,
         password=encrypted_password,
-        is_admin=user.is_admin,
+        user_type=user.user_type,
     )
 
     session.add(new_user)
@@ -103,6 +109,30 @@ def login(request: RequestDetails, db: Session = Depends(get_session)):
     }
 
 
+@router.get("/profile")
+@token_required
+def profile(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
+    """
+    Returns the profile of the user.
+
+    Args:
+        session (Session, optional): The database session. Defaults to Depends(get_session()).
+
+    Returns:
+        dict: A dictionary containing the user's profile.
+    """
+    # use request to avoid pycharm warning
+    _ = request
+    user = session.query(User).filter(User.id == current_user.id).first()
+    return {
+        "username": user.username,
+        "email": user.email,
+        "user_type": user.user_type,
+    }
+
+
 @router.post("/token/refresh", response_model=TokenSchema)
 def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
     """
@@ -134,7 +164,9 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
 @router.get("/getusers")
 @token_required
-def getusers(request: Request, session: Session = Depends(get_session)):
+def getusers(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
     """
     Returns a list of all users.
 
@@ -145,7 +177,7 @@ def getusers(request: Request, session: Session = Depends(get_session)):
         list: A list of all users.
     """
     # use request to avoid pycharm warning
-    _ = request
+    _ = request, current_user
     user = session.query(User).all()
     return user
 
@@ -153,7 +185,9 @@ def getusers(request: Request, session: Session = Depends(get_session)):
 @router.get("/am-i-admin")
 @token_required
 @admin_required
-def am_i_admin(request: Request, session: Session = Depends(get_session)):
+def am_i_admin(
+    request: Request, session: Session = Depends(get_session), current_user=None
+):
     """
     Checks if the user is an admin.
 
@@ -164,7 +198,9 @@ def am_i_admin(request: Request, session: Session = Depends(get_session)):
         bool: True if the user is an admin, False otherwise.
     """
     _, _ = request, session
-    return True
+
+    # stringify dict
+    return str({"admin": "True", "username": current_user.username})
 
 
 @router.post("/change-password")
@@ -197,4 +233,5 @@ def change_password(request: ChangePassword, db: Session = Depends(get_session))
     user.password = encrypted_password
     db.commit()
 
+    # TODO: Add to db, last password changed
     return {"message": "Password changed successfully"}

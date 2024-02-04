@@ -2,7 +2,7 @@
 This module provides functionality for connecting to the database and creating a session factory.
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -20,6 +20,21 @@ def get_session():
         yield db
     finally:
         db.close()
+
+
+def reset_database():
+    """
+    Drops all tables and recreates them.
+    """
+    with engine.begin() as _:
+        # Drop all tables
+        meta = MetaData()
+        meta.reflect(bind=engine)
+        meta.drop_all(bind=engine)
+
+        # Recreate all tables
+        Base.metadata.create_all(bind=engine)
+    print("Database has been reset")
 
 
 engine = create_engine(DATABASE_URL, pool_size=3, max_overflow=0)
