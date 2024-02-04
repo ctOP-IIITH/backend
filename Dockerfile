@@ -3,5 +3,6 @@ WORKDIR /app
 COPY . /app/
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
-EXPOSE 8000
+ENV PORT=3000
+EXPOSE $PORT
 CMD ["bash", "run.sh"]
