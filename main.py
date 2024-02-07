@@ -2,6 +2,8 @@
 This module contains the main FastAPI application.
 """
 
+import sys
+import time
 import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,8 +56,20 @@ async def startup():
         raise e
 
     try:
-        requests.get(OM2M_URL, timeout=5)
-        print("Connection to OM2M successful.")
+        for i in range(5):
+            try:
+                res = requests.get(OM2M_URL, timeout=5)
+                # if 404
+                if res.status_code == 404:
+                    raise requests.exceptions.RequestException("OM2M not found")
+                print("Connection to OM2M successful.")
+                break
+            except requests.exceptions.RequestException:
+                print(f"Attempt {i+1} failed. Retrying in 10 seconds...")
+                time.sleep(10)
+        else:
+            print("All attempts to connect to OM2M failed. Exiting program.")
+            sys.exit(1)
         initial_setup(db)
 
     except requests.RequestException as e:
