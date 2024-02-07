@@ -105,6 +105,11 @@ def create_node(
         if res_data.status_code == 201 and res_desc.status_code == 201:
             session.add(new_node)
             session.commit()
+
+            # Update token_num with the generated id
+            new_node.token_num = new_node.id
+            session.commit()
+
             if con:
                 parameters = str(con.parameters)
             else:
