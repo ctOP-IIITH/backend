@@ -62,6 +62,8 @@ async def startup():
                 # if 404
                 if res.status_code == 404:
                     raise requests.exceptions.RequestException("OM2M not found")
+                elif res.status_code == 503:
+                    raise requests.exceptions.RequestException("OM2M not ready")
                 print("Connection to OM2M successful.")
                 break
             except requests.exceptions.RequestException:
