@@ -13,10 +13,10 @@ class NodeCreate(BaseModel):
     area: str
 
 
-class NodeDelete(BaseModel):
+class NodeAssign(BaseModel):
     """
-    Pydantic model for deleting a node.
+    Pydantic model for assigning a node to a user.
     """
 
-    node_name: str
-    path: str
+    node_id: str
+    vendor_email: str
