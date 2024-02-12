@@ -33,7 +33,10 @@ def create_vertical(vert_name, vert_short_name, vert_description, labels, db: Se
     if res is not None:
         return 409
     status_code, data = om2m.create_ae(vert_short_name, "", labels=labels)
-    if status_code == 201:
+    if status_code == 409:
+        data = om2m.get_containers(vert_short_name)
+        data = data.text
+    if status_code == 201 or status_code == 409:
         res_id = json.loads(data)["m2m:ae"]["ri"].split("/")[-1]
 
         # check if vertical already exists
