@@ -14,9 +14,12 @@ from app.utils.utils import (
     get_next_sensor_node_number,
     get_node_code,
 )
-from app.schemas.nodes import NodeCreate, NodeDelete
+from app.schemas.nodes import NodeCreate, NodeAssign
 from app.models.vertical import Vertical as DBVertical
 from app.models.node import Node as DBNode
+from app.models.user import User as DBUser
+from app.models.user_types import UserType
+from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 
@@ -137,6 +140,125 @@ def create_node(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating node",
         )
+
+
+@router.post("/assign-vendor")
+@token_required
+@admin_required
+def assign_vendor(
+    node: NodeAssign,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    """
+    Assign a node to a vendor.
+
+    Args:
+        node (NodeAssign): The data required to assign a node to a vendor.
+        request (Request): The HTTP request object.
+        session (Session): The database session.
+
+    Returns:
+        int: The status code of the operation.
+
+    Raises:
+        HTTPException: If the node or vendor does not exist or if there is an error assigning the node to the vendor.
+    """
+    _, _ = current_user, request
+
+    # Fetch the node from the database
+    node_to_assign = (
+        session.query(DBNode).filter(DBNode.node_name == node.node_id).first()
+    )
+    if not node_to_assign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Node not found",
+        )
+
+    # Fetch the vendor from the database
+    vendor = session.query(DBUser).filter(DBUser.email == node.vendor_email).first()
+    if not vendor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vendor not found",
+        )
+
+    # check if user is a vendor
+    if vendor.user_type != UserType.VENDOR.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is not a vendor",
+        )
+
+    # Check if the node is already assigned to a vendor
+    node_owner = (
+        session.query(DBNodeOwners)
+        .filter(DBNodeOwners.node_id == node_to_assign.id)
+        .first()
+    )
+
+    if node_owner:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Node already assigned to a vendor",
+        )
+
+    # Assign the node to the vendor
+    node_owner = DBNodeOwners(node_id=node_to_assign.id, vendor_id=vendor.id)
+
+    session.add(node_owner)
+    session.commit()
+
+    raise HTTPException(status_code=201, detail="Node assigned to vendor")
+
+
+@router.get("/get-vendor/{node_name}")
+@token_required
+def get_vendor(
+    node_name: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    """
+    Retrieves the vendor assigned to the node with the given name.
+
+    Args:
+        node_id (str): The name of the node.
+        request (Request): The HTTP request object.
+        session (Session, optional): The database session. Defaults to Depends(get_session).
+
+    Returns:
+        dict: The vendor object.
+    """
+    _, _ = current_user, request
+
+    # Fetch the node from the database
+    node = session.query(DBNode).filter(DBNode.node_name == node_name).first()
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Node not found",
+        )
+
+    # Fetch the vendor assigned to the node
+    # send id, type, username, email
+    vendor = (
+        session.query(DBUser.id, DBUser.user_type, DBUser.username, DBUser.email)
+        .join(DBNodeOwners, DBNodeOwners.vendor_id == DBUser.id)
+        .filter(DBNodeOwners.node_id == node.id)
+        .first()
+    )
+
+    if not vendor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vendor not found",
+        )
+
+    return vendor
 
 
 @router.get("/{path}")

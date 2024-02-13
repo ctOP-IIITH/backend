@@ -19,23 +19,10 @@ from app.routes.sensor_types import router as sensor_types_router
 from app.routes.stats import router as stats_router
 from app.config.settings import OM2M_URL
 
-app = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
-
-
-@app.on_event("startup")
-async def startup():
+def initialize():
     """
-    This function is called when the application starts up.
-    It connects to the database and creates a default admin user if it doesn't exist.
+    This function initializes the application by creating the database tables and creating an admin user if it does not exist.
     """
     Base.metadata.create_all(bind=database)
     # connect to the database
@@ -62,6 +49,8 @@ async def startup():
                 # if 404
                 if res.status_code == 404:
                     raise requests.exceptions.RequestException("OM2M not found")
+                elif res.status_code == 503:
+                    raise requests.exceptions.RequestException("OM2M not ready")
                 print("Connection to OM2M successful.")
                 break
             except requests.exceptions.RequestException:
@@ -75,6 +64,20 @@ async def startup():
     except requests.RequestException as e:
         print(f"Unable to connect to {OM2M_URL}. Error: {e}")
         raise e
+
+
+initialize()
+
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 @app.on_event("shutdown")
