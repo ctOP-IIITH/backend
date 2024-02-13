@@ -24,7 +24,21 @@ def initialize():
     """
     This function initializes the application by creating the database tables and creating an admin user if it does not exist.
     """
+    # Wait for database to be ready
+    for i in range(5):
+        try:
+            database.connect()
+            break
+        except Exception as e:
+            print(f"Error connecting to database: {e}")
+            print(f"Attempt {i+1} failed. Retrying in 10 seconds...")
+            time.sleep(10)
+    else:
+        print("All attempts to connect to database failed. Exiting program.")
+        sys.exit(1)
+
     Base.metadata.create_all(bind=database)
+
     # connect to the database
     try:
         database.connect()
