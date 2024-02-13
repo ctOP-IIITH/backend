@@ -4,7 +4,7 @@ This module provides functionality for connecting to the database and creating a
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from app.config.settings import DATABASE_URL
 
@@ -38,4 +38,6 @@ def reset_database():
 
 
 engine = create_engine(DATABASE_URL, pool_size=3, max_overflow=0)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
