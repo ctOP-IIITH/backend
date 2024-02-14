@@ -8,15 +8,17 @@ from app.auth.auth import (
 )
 from app.database import get_session
 from app.utils.om2m_lib import Om2m
-from app.utils.utils import get_vertical_name
+from app.utils.utils import get_vertical_name, create_hash
 from app.schemas.cin import (
     ContentInstance,
     ContentInstanceGetAll,
     ContentInstanceDelete,
 )
 from app.models.node import Node as DBNode
+from app.models.node_owners import NodeOwners as DBNodeOwners
+from app.models.user import User as DBUser
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
+from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
 
 router = APIRouter()
 
@@ -52,6 +54,39 @@ def create_cin(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Node token not found"
         )
+
+    # Check if vendor is assigned to the node
+    vendor = (
+        session.query(DBUser.id, DBUser.user_type, DBUser.username, DBUser.email)
+        .join(DBNodeOwners, DBNodeOwners.vendor_id == DBUser.id)
+        .filter(DBNodeOwners.node_id == node.id)
+        .first()
+    )
+
+    if vendor is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vendor not assigned to the node",
+        )
+
+    # Check Auth
+    # get Bearer Token from headers
+    bearer_auth_token = request.headers.get("Authorization")
+    if bearer_auth_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization token is missing",
+        )
+    bearer_auth_token = bearer_auth_token.split(" ")[1]
+
+    # Hash
+    hash_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
+    if bearer_auth_token != hash_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization token is invalid",
+        )
+
     vertical_name = get_vertical_name(node.sensor_type_id, session)
     print(node.orid, vertical_name)
 
