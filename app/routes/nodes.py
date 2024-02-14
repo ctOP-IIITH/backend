@@ -13,6 +13,7 @@ from app.utils.utils import (
     get_sensor_type_name,
     get_next_sensor_node_number,
     get_node_code,
+    create_hash,
 )
 from app.schemas.nodes import NodeCreate, NodeAssign
 from app.models.vertical import Vertical as DBVertical
@@ -21,7 +22,7 @@ from app.models.user import User as DBUser
 from app.models.user_types import UserType
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
+from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
 
 router = APIRouter()
 
@@ -258,7 +259,10 @@ def get_vendor(
             detail="Vendor not found",
         )
 
-    return vendor
+    # API TOKEN
+    api_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
+
+    return {**vendor._asdict(), "api_token": api_token}
 
 
 @router.get("/{path}")

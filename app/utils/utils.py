@@ -2,12 +2,20 @@
 This module defines various utility functions used elsewhere.
 """
 
+import hashlib
+
 from geopy.geocoders import Nominatim
 from sqlalchemy.orm import Session
 
 from app.models.vertical import Vertical as DBVertical
 from app.models.sensor_types import SensorTypes as DBSensorTypes
 from app.models.node import Node as DBNode
+
+
+def create_hash(arr_str_to_hash: list, secret_key: str) -> str:
+    """Create a hash from a string"""
+    arr_str_to_hash.append(secret_key)
+    return hashlib.md5("".join(arr_str_to_hash).encode()).hexdigest()
 
 
 def get_vertical_name(sensor_type: int, db: Session):
