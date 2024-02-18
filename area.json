@@ -1,0 +1,42 @@
+{
+    "area": "Gachibowli",
+    "locations": [
+        {
+            "name": "IIIT Hyderabad",
+            "landmark": "CR Rao Road",
+            "sensors": [
+                {
+                    "coordinates": {
+                        "latitude": 17.446919,
+                        "longitude": 78.348122
+                    },
+                    "sensor_type": "Kristnam",
+                    "labels": [
+                        "IIIT",
+                        "IIITH"
+                    ]
+                },
+                {
+                    "coordinates": {
+                        "latitude": 5.4455,
+                        "longitude": 8.3499
+                    },
+                    "sensor_type": "Phillips"
+                }
+            ]
+        },
+        {
+            "name": "ISB",
+            "landmark": "Business School",
+            "sensors": [
+                {
+                    "coordinates": {
+                        "latitude": 4.455,
+                        "longitude": 8.3499
+                    },
+                    "sensor_type": "Kristnam"
+                }
+            ]
+        }
+    ]
+}
