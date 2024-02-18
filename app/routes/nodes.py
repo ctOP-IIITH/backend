@@ -477,6 +477,21 @@ def delete_node(
             detail="Vertical not found",
         )
 
+    # check if vendor is assigned to the node
+    node_owner = (
+        session.query(DBNodeOwners).filter(DBNodeOwners.node_id == node.id).first()
+    )
+
+    if node_owner:
+        # delete the vendor assignment
+        try:
+            session.delete(node_owner)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error deleting node owner",
+            ) from None
+
     response = om2m.delete_resource(f"{vertical.res_short_name}/{node_name}")
 
     if 200 <= response.status_code < 300:
