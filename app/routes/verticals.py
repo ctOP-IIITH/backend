@@ -11,8 +11,10 @@ from app.auth.auth import (
 from app.database import get_session
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.utils.om2m_lib import Om2m
-from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
+from app.schemas.verticals import VerticalCreate
 from app.models.vertical import Vertical as DBAE
+from app.models.node import Node as DBNode
+from app.models.sensor_types import SensorTypes as DBSensorTypes
 from app.utils.create import create_vertical
 
 router = APIRouter()
@@ -109,6 +111,32 @@ def delete_ae(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="AE not found"
         )
+
+    # Check DB if the AE has any nodes
+    # You will have to join sensor_types and nodes to get the nodes vertical_id
+    # Then check if the vertical_id is the same as the vert_id
+    nodes = (
+        session.query(DBNode)
+        .join(DBSensorTypes)
+        .filter(DBSensorTypes.vertical_id == vert_id)
+        .all()
+    )
+
+    if len(nodes) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="AE has nodes. Delete nodes first",
+        )
+
+    # Check DB if AE has sensor_types
+    sensor_types = (
+        session.query(DBSensorTypes).filter(DBSensorTypes.vertical_id == vert_id).all()
+    )
+    if len(sensor_types) > 0:
+        # Delete sensor types
+        for st in sensor_types:
+            session.delete(st)
+
     final_path = f"{ae.res_short_name}"
     status_code = om2m.delete_resource(final_path).status_code
     print(status_code)

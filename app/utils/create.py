@@ -15,7 +15,7 @@ from app.utils.utils import (
     get_next_sensor_node_number,
     get_node_code,
 )
-from app.schemas.verticals import VerticalCreate, VerticalGetAll, VerticalDelete
+from app.schemas.verticals import VerticalCreate
 from app.models.vertical import Vertical as DBAE
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.models.vertical import Vertical as DBVertical
