@@ -6,6 +6,7 @@ if [[ $1 == "--dev" ]]; then
 elif [[ $1 == "--test" ]]; then
     # Spin up test om2m
     echo "Starting test om2m"
+    cd tests
     cd test-om2m
     java -jar -ea -Declipse.ignoreApp=true -Dosgi.clean=true -Ddebug=true plugins/org.eclipse.equinox.launcher_1.3.0.v20140415-2008.jar -console -noExit &
     om2m_pid=$!
