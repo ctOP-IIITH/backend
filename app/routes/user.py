@@ -200,7 +200,7 @@ def am_i_admin(
     _, _ = request, session
 
     # stringify dict
-    return str({"admin": "True", "username": current_user.username})
+    return {"admin": True, "username": current_user.username}
 
 
 @router.post("/change-password")

@@ -15,14 +15,19 @@ elif [[ $1 == "--test" ]]; then
     # Run tests
     echo "Running tests"
     pytest --disable-warnings
+    # return non zero exit code if tests fail
+    test_exit_code=$?
     # Kill test om2m
     echo "Killing test om2m"
     kill -9 $om2m_pid
     echo "Test om2m killed"
     # Delete test om2m db
     echo "Deleting test om2m db"
-    rm -rf "test-om2m/database/*"
+    rm -rf test-om2m/database/
     rm -r test.db
+    if [[ $test_exit_code -ne 0 ]]; then
+        exit 1
+    fi
 else
     # print the value of the WORKERS environment variable
     echo "WORKERS: ${WORKERS:-1}"

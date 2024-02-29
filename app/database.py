@@ -47,7 +47,7 @@ def init_db(db_url):
     global engine
 
     if db_url.startswith("sqlite:"):
-        engine = create_engine(db_url)
+        engine = create_engine(db_url, connect_args={"check_same_thread": False})
     else:
         engine = create_engine(db_url, pool_size=3, max_overflow=0)
 
