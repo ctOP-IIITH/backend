@@ -25,6 +25,9 @@ elif [[ $1 == "--test" ]]; then
     echo "Deleting test om2m db"
     rm -rf test-om2m/database/
     rm -r test.db
+    # Wait for all extra files to be deleted
+    echo "Waiting for all extra files to be deleted"
+    sleep 5
     if [[ $test_exit_code -ne 0 ]]; then
         exit 1
     fi
