@@ -15,7 +15,11 @@ def get_session():
     """
     Returns a new session from the session factory.
     """
+    SessionLocal = scoped_session(
+        sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    )
     db = SessionLocal()
+    engine.dispose()
     try:
         yield db
     finally:
@@ -38,6 +42,3 @@ def reset_database():
 
 
 engine = create_engine(DATABASE_URL, pool_size=3, max_overflow=0)
-SessionLocal = scoped_session(
-    sessionmaker(autocommit=False, autoflush=False, bind=engine)
-)
