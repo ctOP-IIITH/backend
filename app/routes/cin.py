@@ -18,11 +18,11 @@ from app.models.node import Node as DBNode
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.user import User as DBUser
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI, JWT_SECRET_KEY
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 @router.post("/create/{token_id}")

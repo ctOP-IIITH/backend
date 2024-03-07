@@ -22,11 +22,11 @@ from app.models.user import User as DBUser
 from app.models.user_types import UserType
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI, JWT_SECRET_KEY
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 # TODO : Add the Database functions
 
@@ -82,7 +82,7 @@ def create_node(
 
     if response.status_code == 201:
         res_data = om2m.create_container(
-            "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
+            "Data1", f"{vert_name}/{res_id}", labels=["Data", res_id]
         )
         res_desc = om2m.create_container(
             "Descriptor",
