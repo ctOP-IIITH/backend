@@ -20,9 +20,17 @@ def test_correct_login():
     assert response.json() == {"admin": True, "username": "admin"}
 
 
-def test_incorrect_login():
+def test_incorrect_password_login():
     response = client.post(
         "/user/login", json={"email": "admin@localhost", "password": "wrongpassword"}
     )
     assert response.status_code == 400
     assert response.json() == {"detail": "Incorrect password"}
+
+
+def test_incorrect_email_login():
+    response = client.post(
+        "/user/login", json={"email": "admin1@localhost", "password": "admin"}
+    )
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Incorrect email"}
