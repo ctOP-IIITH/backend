@@ -8,6 +8,13 @@ elif [[ $1 == "--test" ]]; then
     echo "Starting test om2m"
     cd tests
     cd test-om2m
+    # check if java is 1.8.x
+    java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    if [[ $java_version != 1.8.* ]]; then
+        echo "Java version is not 1.8.x"
+        exit 1
+    fi
+
     java -jar -ea -Declipse.ignoreApp=true -Dosgi.clean=true -Ddebug=true plugins/org.eclipse.equinox.launcher_1.3.0.v20140415-2008.jar -console -noExit &
     om2m_pid=$!
     echo "Test om2m started with pid: $om2m_pid"

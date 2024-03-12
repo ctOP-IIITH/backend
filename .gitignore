@@ -134,3 +134,7 @@ cython_debug/
 # temp db
 **/*.db
 **/*.out
+
+# test files
+tests/test-om2m/configuration/org.eclipse.osgi/.manager/*
+tests/test-om2m/configuration/org.eclipse.osgi/framework.info.1
