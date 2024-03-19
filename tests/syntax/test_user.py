@@ -15,7 +15,7 @@ def test_create_user():
         json={
             "username": "testuser",
             "email": "test@localhost",
-            "password": "testpassword",
+            "password": "testpassword", 
             "user_type": 0
         },
         headers={"Authorization": f"Bearer {access_token}"},

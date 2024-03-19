@@ -7,6 +7,7 @@ elif [[ $1 == "--test" ]]; then
     # Spin up test om2m
     echo "Starting test om2m"
     cd tests
+    # This is for linux distro, if windows comment lines till 22 and manually start om2m
     # cd test-om2m
     # # check if java is 1.8.x
     # java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
