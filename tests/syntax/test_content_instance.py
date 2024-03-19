@@ -11,9 +11,14 @@ def create_vertical():
     access_token = response.json()["access_token"]
     response = client.post(
         "/verticals/create-ae",
-        json={"name": "test_vertical"},
-        headers={"Authorization": f"Bearer {access_token}"},
+        json={"ae_name": "test_ae",
+               "ae_description": "test_description",
+               "ae_short_name": "TE",
+               "labels": []
+        },
+        headers={"Authorization": f"Bearer {access_token}"}, 
     )
+    
 
 # create new sensor type
 def create_sensor_type():
@@ -24,10 +29,16 @@ def create_sensor_type():
     )
     access_token = response.json()["access_token"]
     response = client.post(
-        "/sensor-types/create-sensor-type",
-        json={"name": "test_sensor_type", "unit": "test_unit"},
-        headers={"Authorization": f"Bearer {access_token}"},
-    )  
+        "/sensor-types/create",
+        json={"res_name": "test_sensor_type",
+               "parameters": ["test_parameter"],
+               "data_types": ["test_data_type"],
+               "labels": ["test_label"],
+               "vertical_id": 0
+        },
+        headers={"Authorization": f"Bearer {access_token}"}, 
+    )
+
 
 def test_create_cin():
     time.sleep(1)
@@ -37,7 +48,10 @@ def test_create_cin():
     access_token = response.json()["access_token"]
     # create a new node
     response = client.post(
-        "/nodes/create-node",
+        "/cin/create/1",
+        json={}
+    )
+    assert response.status_code == 200
 
 
     
