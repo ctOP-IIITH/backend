@@ -50,6 +50,7 @@ def init_db(db_url):
         engine = create_engine(db_url, connect_args={"check_same_thread": False})
     else:
         engine = create_engine(db_url, pool_size=3, max_overflow=0)
+    Base.metadata.bind = engine    
 
 
 # Initialize the database with the default DATABASE_URL
