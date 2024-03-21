@@ -132,7 +132,7 @@ def test_invalid_type_of_req_create_cin():
     assert response.status_code == 405
     
 
-# delete cin
+# test delete cin
 def test_delete_cin():
     time.sleep(1)
     response = client.post(
