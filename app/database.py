@@ -10,8 +10,6 @@ from app.config.settings import DATABASE_URL
 
 Base = declarative_base()
 
-engine = None
-
 
 def get_session():
     """
@@ -43,14 +41,4 @@ def reset_database():
     print("Database has been reset")
 
 
-def init_db(db_url):
-    global engine
-
-    if db_url.startswith("sqlite:"):
-        engine = create_engine(db_url, connect_args={"check_same_thread": False})
-    else:
-        engine = create_engine(db_url, pool_size=3, max_overflow=0)
-
-
-# Initialize the database with the default DATABASE_URL
-init_db(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_size=3, max_overflow=0)

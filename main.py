@@ -11,7 +11,7 @@ from app.routes.user import router as user_router
 from app.routes.verticals import router as verticals_router
 from app.routes.import_conf import router as import_conf_router
 from app.routes.token import router as token_router
-from app.database import engine as database, Base, get_session, init_db, reset_database
+from app.database import engine as database, Base, get_session, reset_database
 from app.utils.initial_setup import initial_setup
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
@@ -20,15 +20,10 @@ from app.routes.stats import router as stats_router
 from app.config.settings import OM2M_URL
 
 
-def initialize(db_url=None):
+def initialize():
     """
     This function initializes the application by creating the database tables and creating an admin user if it does not exist.
     """
-    global database
-    if db_url:
-        # Initialize the database with the given URL
-        init_db(db_url)
-
     # Wait for database to be ready
     for i in range(5):
         try:
