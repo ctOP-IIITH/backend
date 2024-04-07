@@ -1,4 +1,5 @@
 from tests import client
+from app.utils.delete_with_payload import CustomTestClient
 
 import time
  
@@ -122,7 +123,7 @@ def test_invalid_type_of_request_create_user():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/create-user",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -198,7 +199,7 @@ def test_invalid_type_of_request_login():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/login"
     )
     assert response.status_code == 405
@@ -246,7 +247,7 @@ def test_invalid_type_of_request_profile():
     assert response.status_code == 405  
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/profile", headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 405
@@ -305,7 +306,7 @@ def test_invalid_type_of_request_refresh_token():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/token/refresh"
     )
     assert response.status_code == 405
@@ -348,7 +349,7 @@ def test_invalid_type_of_request_get_users():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/getusers", headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 405
@@ -392,7 +393,7 @@ def test_invalid_type_of_request_am_i_admin():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/am-i-admin", headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 405
@@ -588,7 +589,7 @@ def test_invalid_type_of_request_change_password():
     assert response.status_code == 405
     assert response.json() == {"detail": "Method Not Allowed"}
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/user/change-password",
         headers={"Authorization": f"Bearer {access_token}"},
     )

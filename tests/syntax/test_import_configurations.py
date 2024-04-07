@@ -1,4 +1,5 @@
 from tests import client
+from app.utils.delete_with_payload import CustomTestClient
 
 import time
 
@@ -29,7 +30,7 @@ def test_invalid_type_of_request_import_configurations():
     )
     assert response.status_code == 405
 
-    response = client.delete("/import/import",
+    response = client.delete_with_payload("/import/import",
         headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 405

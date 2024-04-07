@@ -1,4 +1,5 @@
 from tests import client
+from app.utils.delete_with_payload import CustomTestClient
 
 import time
 
@@ -115,7 +116,7 @@ def test_invalid_type_of_request_create_sensor_type():
 
     assert response.status_code == 405
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/sensor-types/create",
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
@@ -131,10 +132,55 @@ def test_get_all_sensor_types():
     )
     access_token = response.json()["access_token"]
 
-    create_vertical()
     response = client.get(
         "/sensor-types/get-all",
-        json={"vertical_id": 1},
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 200
+
+
+def test_invalid_type_of_request_get_all_sensor_types():
+    time.sleep(1)
+    response = client.post(
+        "/user/login", json={"email": "admin@localhost",
+                                "password": "admin"}
+    )
+    access_token = response.json()["access_token"]
+
+    response = client.post(
+        "/sensor-types/get-all",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 405
+
+    response = client.put(
+        "/sensor-types/get-all",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 405
+
+    response = client.delete_with_payload(
+        "/sensor-types/get-all",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    assert response.status_code == 405
+
+# test get all sensor types of a vertical
+def test_get_sensor_types_vertical():
+    time.sleep(1)
+    response = client.post(
+        "/user/login", json={"email": "admin@localhost",
+                                "password": "admin"}
+    )
+    access_token = response.json()["access_token"]
+
+    create_vertical()
+    response = client.get(
+        "/sensor-types/get/1",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
@@ -149,8 +195,7 @@ def test_invalid_vertical_id_get_all_sensor_types():
     access_token = response.json()["access_token"]
 
     response = client.get(
-        "/sensor-types/get-all",
-        json={"vertical_id": 1000},
+        "/sensor-types/get/1000",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
@@ -165,24 +210,21 @@ def test_invalid_type_of_request_get_all_sensor_types():
     access_token = response.json()["access_token"]
 
     response = client.post(
-        "/sensor-types/get-all",
-        json={"vertical_id": 1},
+        "/sensor-types/get/1",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
     assert response.status_code == 405
 
     response = client.put(
-        "/sensor-types/get-all",
-        json={"vertical_id": 1},
+        "/sensor-types/get/1",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
     assert response.status_code == 405
 
-    response = client.delete(
-        "/sensor-types/get-all",
-        json={"vertical_id": 1},
+    response = client.delete_with_payload(
+        "/sensor-types/get/1",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
@@ -210,7 +252,7 @@ def test_delete_sensor_type():
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/sensor-types/delete",
         json={"id": 1,
                "vertical_id": 1
@@ -241,7 +283,7 @@ def test_invalid_details_delete_sensor_type():
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/sensor-types/delete",
         json={"id": 1000,
                "vertical_id": 1
@@ -251,7 +293,7 @@ def test_invalid_details_delete_sensor_type():
 
     assert response.status_code == 500
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/sensor-types/delete",
         json={"id": 1,
                "vertical_id": 1000
@@ -269,7 +311,7 @@ def test_missing_details_delete_sensor_type():
     )
     access_token = response.json()["access_token"]
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/sensor-types/delete",
     )
 

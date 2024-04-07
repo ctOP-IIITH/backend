@@ -1,5 +1,6 @@
 from tests import client
 import time
+from app.utils.delete_with_payload import CustomTestClient
 
 # create new vertical
 def create_vertical():
@@ -57,6 +58,19 @@ def create_node():
             },
     )
 
+def assign_vendor_to_node():
+    time.sleep(1)
+    response = client.post(
+        "/user/login", json={"email": "admin@localhost",
+                                "password": "admin"}
+    )
+    access_token = response.json()["access_token"]
+    response = client.post(
+        "/nodes/assign-vendor", json={"node_id": "TE01-0000-0001",
+                                        "vendor_email": "vendor@localhost"},    
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
 
 # test create content instance
 def test_create_cin():
@@ -68,6 +82,7 @@ def test_create_cin():
     create_vertical()
     create_sensor_type()
     create_node()
+    assign_vendor_to_node()
     response = client.post(
         "/cin/create/1",
         json={},
@@ -111,7 +126,7 @@ def test_invalid_type_of_req_create_cin():
     create_vertical()
     create_sensor_type()
     create_node()
-
+    assign_vendor_to_node()
     response = client.get(
         "/cin/create/1",
         headers={"Authorization": f"Bearer {access_token}"}
@@ -125,7 +140,7 @@ def test_invalid_type_of_req_create_cin():
     )
     assert response.status_code == 405
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/cin/create/1",
         headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -143,8 +158,9 @@ def test_delete_cin():
     create_vertical()
     create_sensor_type()
     create_node()
+    assign_vendor_to_node()
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/cin/delete",
         json={
             "cin_id": "TE01-0000-0001",
@@ -165,8 +181,9 @@ def test_delete_cin_invalid_cin_id():
     create_vertical()
     create_sensor_type()
     create_node()
+    assign_vendor_to_node()
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/cin/delete",
         json={
             "cin_id": "TEfd01-0000-0002",
@@ -187,8 +204,9 @@ def test_delete_cin_invalid_node_id():
     create_vertical()
     create_sensor_type()
     create_node()
+    assign_vendor_to_node()
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/cin/delete",
         json={
             "cin_id": "TE01-0000-0001",
@@ -209,8 +227,9 @@ def test_missing_details_delete_cin():
     create_vertical()
     create_sensor_type()
     create_node()
+    assign_vendor_to_node()
 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/cin/delete",
         json={
         },

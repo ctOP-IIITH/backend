@@ -1,4 +1,6 @@
 from tests import client 
+from app.utils.delete_with_payload import CustomTestClient
+
 import pytest
 
 import time
@@ -129,35 +131,35 @@ def test_delete_ae():
     access_token = response.json()["access_token"]
 
     # test invalid vertical id format (string)
-    response = client.delete(
+    response = client.delete_with_payload(
         "/verticals/delete-ae/test",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
 
     # test invalid vertical id format (list) 
-    response = client.delete(
+    response = client.delete_with_payload(
         "/verticals/delete-ae/[]",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
 
     # test invalid vertical id format (dictionary)
-    response = client.delete(
+    response = client.delete_with_payload(
         "/verticals/delete-ae/{}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
 
     # test invalid vertical id format (float)
-    response = client.delete(
+    response = client.delete_with_payload(
         "/verticals/delete-ae/1.5",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
 
     # test vertical id that dont exist even thogh it is a integer
-    response = client.delete(
+    response = client.delete_with_payload(
         "/verticals/delete-ae/0",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -179,7 +181,7 @@ def test_delete_ae():
     
     assert id != 0
 
-    response = client.delete(
+    response = client.delete_with_payload(
         f"/verticals/delete-ae/{id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -265,7 +267,7 @@ def test_delete_ae():
     assert response.json() == {"detail": "Node created"}
 
     ## 6. Now delete vertical should not work as it has nodes
-    response = client.delete(
+    response = client.delete_with_payload(
         f"/verticals/delete-ae/{id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
