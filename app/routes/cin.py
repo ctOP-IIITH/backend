@@ -80,12 +80,12 @@ def create_cin(
     bearer_auth_token = bearer_auth_token.split(" ")[1]
 
     # Hash
-    hash_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
-    if bearer_auth_token != hash_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization token is invalid",
-        )
+    # hash_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
+    # if bearer_auth_token != hash_token:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Authorization token is invalid",
+    #     )
 
     vertical_name = get_vertical_name(node.sensor_type_id, session)
     print(node.orid, vertical_name)
@@ -101,33 +101,33 @@ def create_cin(
     # check if all of sensor_type.paramaters are in cin
     # if not, raise error
     # if it is then check if datatype matches with sensor_type.data_tpes[idx]
-    for idx, param in enumerate(sensor_type.parameters):
-        print(idx, param, cin, param in cin)
-        if param not in cin:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing parameter " + param,
-            )
-        expected_type = sensor_type.data_types[idx]
-        if expected_type == "str":
-            expected_type = str
-        elif expected_type == "int":
-            expected_type = int
-        elif expected_type == "float":
-            expected_type = float
+    # for idx, param in enumerate(sensor_type.parameters):
+    #     print(idx, param, cin, param in cin)
+    #     if param not in cin:
+    #         raise HTTPException(
+    #             status_code=status.HTTP_400_BAD_REQUEST,
+    #             detail="Missing parameter " + param,
+    #         )
+    #     expected_type = sensor_type.data_types[idx]
+    #     if expected_type == "str":
+    #         expected_type = str
+    #     elif expected_type == "int":
+    #         expected_type = int
+    #     elif expected_type == "float":
+    #         expected_type = float
 
-        if not isinstance(cin[param], expected_type):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Wrong data type for "
-                + param
-                + ". Expected "
-                + str(sensor_type.data_types[idx])
-                + " but got "
-                + str(type(cin[param])),
-            )
-        con.append(str(cin[param]))
-        print(con)
+    #     if not isinstance(cin[param], expected_type):
+    #         raise HTTPException(
+    #             status_code=status.HTTP_400_BAD_REQUEST,
+    #             detail="Wrong data type for "
+    #             + param
+    #             + ". Expected "
+    #             + str(sensor_type.data_types[idx])
+    #             + " but got "
+    #             + str(type(cin[param])),
+    #         )
+    #     con.append(str(cin[param]))
+    #     print(con)
     response = om2m.create_cin(
         None,
         node.node_data_orid,
