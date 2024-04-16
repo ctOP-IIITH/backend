@@ -51,7 +51,7 @@ def initialize():
         # ## THIS COULD POTENTIALLY CAUSE SERIOUS ISSUES.      ##
         # ## ENSURE YOU MANUALLY CLEAR ONEM2M DB AFTER THIS.   ##
         # ########################################################
-        # reset_database()
+        reset_database()
 
     except Exception as e:
         print(f"Error connecting to database: {e}")
