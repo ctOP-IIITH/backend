@@ -15,7 +15,7 @@ services:
         soft: 65536
         hard: 65536
     ports:
-      - 8200:8200
+      - 7112:8200
     depends_on:
       - mongo-db
     restart: always
