@@ -1,34 +1,10 @@
 from tests import client
 import time
 from app.utils.delete_with_payload import CustomTestClient
-
-# create new vertical
-def create_vertical():
-    time.sleep(1)
-    response = client.post(
-        "/user/login", json={"email": "admin@localhost",
-                                "password": "admin"}
-    )
-    access_token = response.json()["access_token"]
-    response = client.post(
-        "/verticals/create-ae",
-        json={"ae_name": "test_ae",
-               "ae_description": "test_description",
-               "ae_short_name": "TE",
-               "labels": []
-        },
-        headers={"Authorization": f"Bearer {access_token}"}, 
-    )
     
 
 # create new sensor type
-def create_sensor_type():
-    time.sleep(1)
-    response = client.post(
-        "/user/login", json={"email": "admin@localhost",
-                                "password": "admin"}
-    )
-    access_token = response.json()["access_token"]
+def create_sensor_type(access_token):
     response = client.post(
         "/sensor-types/create",
         json={"res_name": "test_sensor_type",
@@ -39,37 +15,46 @@ def create_sensor_type():
         },
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
+    print("HIHIHIHIHIHIHI from create sensor type")
+    print(response.json())
 
-def create_node():
-    time.sleep(1)
-    response = client.post(
-        "/user/login", json={"email": "admin@localhost",
-                                "password": "admin"}
-    )
-    access_token = response.json()["access_token"]
+def create_node(access_token):
     response = client.post(
         "/nodes/create-node",
         json = {
                 "lbls": [],
-                "sensor_type_id": 1,
+                "sensor_type_id": 1 ,
                 "latitude": 10,
                 "longitude": 90,
                 "area": "Kakinada"
             },
+        headers={"Authorization": f"Bearer {access_token}"},
     )
+    print("HIHIHIHIHIHIHI from create node")
+    print(response.json())
 
-def assign_vendor_to_node():
-    time.sleep(1)
+def create_vendor(access_token):
     response = client.post(
-        "/user/login", json={"email": "admin@localhost",
-                                "password": "admin"}
+        "/user/create-user",
+        json = {
+                "username": "testvendor",
+                "email": "vendor@localhost",
+                "password": "vendor",
+                "user_type": 2
+            },
+        headers={"Authorization": f"Bearer {access_token}"},
     )
-    access_token = response.json()["access_token"]
+    print("HIHIHIHIHIHIHI from create vendor")
+    print(response.json())
+
+def assign_vendor_to_node(access_token):
     response = client.post(
-        "/nodes/assign-vendor", json={"node_id": "TE01-0000-0001",
+        "/nodes/assign-vendor", json={"node_id": "WQ01-0000-0001",
                                         "vendor_email": "vendor@localhost"},    
         headers={"Authorization": f"Bearer {access_token}"}
     )
+    print("HIHIHIHIHIHIHI from assign vendor to node")
+    print(response.json())
 
 
 # test create content instance
@@ -79,15 +64,19 @@ def test_create_cin():
         "/user/login", json={"email": "admin@localhost", "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
     response = client.post(
         "/cin/create/1",
         json={},
         headers={"Authorization": f"Bearer {access_token}"}
     )
+    print("HIHIHIHIHIHIHI")
+    print(response.json())
+    print(response.status_code)
     assert response.status_code == 200
 
 def test_create_cin_invalid_node_id():
@@ -123,10 +112,11 @@ def test_invalid_type_of_req_create_cin():
         "/user/login", json={"email": "admin@localhost", "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
     response = client.get(
         "/cin/create/1",
         headers={"Authorization": f"Bearer {access_token}"}
@@ -155,17 +145,18 @@ def test_delete_cin():
                                 "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
 
     response = client.delete_with_payload(
         "/cin/delete",
         json={
-            "cin_id": "TE01-0000-0001",
-            "node_id": 1,
-            "path": "AE-TE"
+            "cin_id": "WQ01-0000-0001",
+            "node_id": "1",
+            "path": "AE-WQ"
         },
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -178,16 +169,17 @@ def test_delete_cin_invalid_cin_id():
                                 "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
 
     response = client.delete_with_payload(
         "/cin/delete",
         json={
             "cin_id": "TEfd01-0000-0002",
-            "node_id": 1,
+            "node_id": "1",
             "path": "AE-TE"
         },
         headers={"Authorization": f"Bearer {access_token}"},
@@ -201,16 +193,17 @@ def test_delete_cin_invalid_node_id():
                                 "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
 
     response = client.delete_with_payload(
         "/cin/delete",
         json={
             "cin_id": "TE01-0000-0001",
-            "node_id": 100,
+            "node_id": "100",
             "path": "AE-TE"
         },
         headers={"Authorization": f"Bearer {access_token}"},
@@ -224,10 +217,11 @@ def test_missing_details_delete_cin():
                                 "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    create_sensor_type()
-    create_node()
-    assign_vendor_to_node()
+    # create_vertical()
+    create_sensor_type(access_token)
+    create_node(access_token)
+    create_vendor(access_token)
+    assign_vendor_to_node(access_token)
 
     response = client.delete_with_payload(
         "/cin/delete",

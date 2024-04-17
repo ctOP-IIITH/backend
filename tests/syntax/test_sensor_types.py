@@ -36,7 +36,7 @@ def test_create_sensor_type():
                "parameters": ["test_parameter"],
                "data_types": ["test_data_type"],
                "labels": ["test_label"],
-               "vertical_id": 1
+               "vertical_id": 2
         },
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
@@ -70,17 +70,6 @@ def test_already_existing_sensor_type_create_sensor_type():
                                 "password": "admin"}
     )
     access_token = response.json()["access_token"]
-    create_vertical()
-    response = client.post(
-        "/sensor-types/create",
-        json={"res_name": "test_sensor_type",
-               "parameters": ["test_parameter"],
-               "data_types": ["test_data_type"],
-               "labels": ["test_label"],
-               "vertical_id": 1
-        },
-        headers={"Authorization": f"Bearer {access_token}"}, 
-    )
 
     response = client.post(
         "/sensor-types/create",
@@ -88,7 +77,7 @@ def test_already_existing_sensor_type_create_sensor_type():
                "parameters": ["test_parameter"],
                "data_types": ["test_data_type"],
                "labels": ["test_label"],
-               "vertical_id": 1
+               "vertical_id": 2
         },
         headers={"Authorization": f"Bearer {access_token}"}, 
     )
