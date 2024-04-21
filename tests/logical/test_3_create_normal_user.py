@@ -2,7 +2,7 @@ from tests import client
 from app.models.user_types import UserType
 import time
 
-def test_create_admin():
+def test_create_normal_user():
     time.sleep(1)
     response = client.post(
         "/user/login", json={"email": "admin@localhost", "password": "admin"}
@@ -11,17 +11,17 @@ def test_create_admin():
     response = client.post(
         "/user/create-user",
         json={
-            "email": "admin2@localhost",
-            "password": "admin2",
-            "username": "admin2",
-            "user_type": UserType.ADMIN.value,
+            "email": "normal@localhost",
+            "password": "normal",
+            "username": "normal",
+            "user_type": UserType.CUSTOMER.value,
         },
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
     assert response.json() == {"message": "user created successfully"}
     response = client.post(
-        "/user/login", json={"email": "admin2@localhost", "password": "admin2"}
+        "/user/login", json={"email": "normal@localhost", "password": "normal"}
     )
     assert response.status_code == 200
     response = client.get(
@@ -30,7 +30,7 @@ def test_create_admin():
     )
     assert response.status_code == 200
     assert response.json() == {
-        "email": "admin2@localhost",
-        "username": "admin2",
-        "user_type": UserType.ADMIN.value,
+        "email": "normal@localhost",
+        "username": "normal",
+        "user_type": UserType.CUSTOMER.value,
     }
