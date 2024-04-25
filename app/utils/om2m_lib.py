@@ -22,7 +22,7 @@ class Om2m:
             "Content-Type": "application/json;ty=2",
         }
 
-        r = requests.post(self.url, headers=headers, json=data)
+        r = requests.post(self.url, headers=headers,json=data)
         return r.status_code, r.text
 
     def create_container(self, name, parent, labels=[], mni=120):
@@ -60,6 +60,60 @@ class Om2m:
             self.url + "/" + parent + "/" + node + "/Data?rcn=1",
             headers=headers,
             json=data,
+            timeout=timeout,
+        )
+        return r
+
+    def delete_resource(self, resource_path, timeout=None):
+        XM2MORIGIN = "SOrigin"
+        payload = ""
+        headers = {
+        'Accept': 'application/json',
+        'X-M2M-RI': self.XM2MRI,
+        'X-M2M-Origin': XM2MORIGIN
+        }
+        response = requests.delete(url= f"{self.url}/{resource_path}", headers=headers, data=payload, timeout=timeout)
+
+        return response
+
+
+    def get_containers(self, resource_path="", ri=None, all=False, timeout=None):
+        XM2MORIGIN = "SOrigin"
+        headers = {
+        'Accept': 'application/json',
+        'X-M2M-RI': self.XM2MRI,
+        'X-M2M-Origin': XM2MORIGIN
+        }
+        url = f"{self.url}/{resource_path}"
+        if all:
+            url = f"{url}?rcn=4"
+        response = requests.get(url=url, headers=headers, timeout=timeout)
+        return response
+
+    def get_all_resource(self, resource_path: str, timeout=None):
+        XM2MORIGIN = "SOrigin"
+        headers = {
+        'Accept': 'application/json',
+        'X-M2M-RI': self.XM2MRI,
+        'X-M2M-Origin': XM2MORIGIN
+        }
+        response = requests.get(f"{self.url}/{resource_path}?rcn=4",
+        headers=headers,timeout=timeout)
+        return response
+
+    def get_la_cin(self, resource_path, timeout=None):
+        """
+        Gets latest content instance in OM2M.
+        """
+        headers = {
+        'Accept': 'application/json',
+        'X-M2M-RI': self.XM2MRI,
+        'X-M2M-Origin': XM2MORIGIN
+        }
+        print(f"{self.url}/{resource_path}/latest")
+        r = requests.get(
+            f"{self.url}/{resource_path}/latest",
+            headers=headers,
             timeout=timeout,
         )
         return r
