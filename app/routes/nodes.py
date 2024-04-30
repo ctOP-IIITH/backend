@@ -348,6 +348,7 @@ def get_nodes(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
+            DBVertical.res_short_name,
         )
         .first()
     )
@@ -360,17 +361,25 @@ def get_nodes(
         )
     data_orid = cur_node.node_data_orid
     print(data_orid)
-    response = om2m.get_containers(ri=data_orid, all=True)
+    response_ae = om2m.get_containers(
+        resource_path=cur_node.res_short_name + "/" + path
+    )
+    response = om2m.get_containers(
+        resource_path=cur_node.res_short_name + "/" + path, ri=data_orid, all=True
+    )
 
     if response.status_code == 200:
         all_data = response.json()
-
+        ae_node_data = response_ae.json()
         # Extract labels and content instances from the response
-        labels = all_data.get("m2m:cnt", {}).get("lbl", [])
-        content_instances = all_data.get("m2m:cnt", {}).get("m2m:cin", [])
-
+        labels = ae_node_data.get("m2m:cnt", {}).get("lbl", [])
+        content_instances = all_data.get("m2m:rsp", {}).get("m2m:cin", [])
         # Prepare content instances data
-        cins = [(ast.literal_eval(x["con"]), x["lt"]) for x in content_instances]
+        cins = [
+            (ast.literal_eval(x["con"]), x["lt"])
+            for x in content_instances
+            if cur_node.parameters[0] not in x["con"]
+        ]
 
         # Merge current node data with labels and content instances
         final_data = {**cur_node, "labels": labels, "cins": cins}
