@@ -406,36 +406,41 @@ def get_latest_cin(
     """
     _, _ = current_user, request
 
-    cur_node = session.query(DBNode).filter(DBNode.node_name == path).first()
+    cur_node = (
+        session.query(DBNode)
+        .join(DBSensorType, DBSensorType.id == DBNode.sensor_type_id)
+        .join(DBVertical, DBVertical.id == DBSensorType.vertical_id)
+        .filter(DBNode.node_name == path)
+        .with_entities(
+            DBNode.node_data_orid,
+            DBVertical.res_short_name,
+        )
+        .first()
+    )
     print(path, cur_node)
     if cur_node is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Node not found",
         )
-    data_orid = cur_node.node_data_orid
-    print(data_orid)
-    response = om2m.get_containers(ri=data_orid, all=True)
 
-    if response.status_code == 200:
-        la_url = response.json().get("m2m:cnt", {}).get("la", "")
-        # /in-cse/in-name/AE-WF/WATER_QUANTITY01-0000-0001/Data/la
-        # We need AE-WF/WATER_QUANTITY01-0000-0001/Data
-        la_url = "/".join(la_url.split("/")[-4:-1])
-        print(la_url)
-        r = om2m.get_la_cin(la_url)
-        if r.status_code == 200:
-            return r.json()
-        elif r.status_code == 404:
-            raise HTTPException(
-                status_code=r.status_code,
-                detail="No CIN found",
-            )
-        else:
-            raise HTTPException(
-                status_code=r.status_code,
-                detail="Error getting latest CIN",
-            )
+    # /in-cse/in-name/AE-WF/WATER_QUANTITY01-0000-0001/Data/la
+    # We need AE-WF/WATER_QUANTITY01-0000-0001/Data
+    la_url = f"{cur_node.res_short_name}/{path}/Data"
+    print(la_url)
+    r = om2m.get_la_cin(la_url)
+    if r.status_code == 200:
+        return r.json()
+    elif r.status_code == 404:
+        raise HTTPException(
+            status_code=r.status_code,
+            detail="No CIN found",
+        )
+    else:
+        raise HTTPException(
+            status_code=r.status_code,
+            detail="Error getting latest CIN",
+        )
 
 
 @router.delete("/delete-node/{node_name}")

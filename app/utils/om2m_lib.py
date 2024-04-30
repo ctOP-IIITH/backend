@@ -109,6 +109,7 @@ class Om2m:
         """
         Gets latest content instance in OM2M.
         """
+        XM2MORIGIN = "SOrigin"
         headers = {
             "Accept": "application/json",
             "X-M2M-RI": self.XM2MRI,
