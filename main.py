@@ -18,8 +18,7 @@ from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
 from app.routes.sensor_types import router as sensor_types_router
 from app.routes.stats import router as stats_router
-from app.config.settings import OM2M_URL
-
+from app.config.settings import OM2M_URL, ROOT_PATH
 
 def initialize():
     """
@@ -83,7 +82,7 @@ def initialize():
 
 initialize()
 
-app = FastAPI()
+app = FastAPI(root_path=ROOT_PATH)
 
 # Add CORS middleware
 app.add_middleware(
