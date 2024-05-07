@@ -3,8 +3,7 @@ This module defines the user routes for importing the configuration files.
 """
 
 import json
-from fastapi import APIRouter, Depends, Request
-
+from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 
 from app.utils.om2m_lib import Om2m
@@ -15,6 +14,9 @@ from app.utils.create import (
 )
 
 from app.schemas.import_conf import Vertical, Area
+from app.models.sensor_types import SensorTypes as DBSensorType
+from app.routes.nodes import create_node
+from app.schemas.nodes import NodeCreate
 
 from app.database import get_session
 from app.config.settings import OM2M_URL
@@ -28,62 +30,20 @@ router = APIRouter()
 om2m = Om2m("admin", "admin", OM2M_URL)
 
 
-@router.get("/import")
+@router.post("/import")
 @token_required
 @admin_required
 def import_conf(
-    request: Request, session: Session = Depends(get_session), current_user=None
+    request: Request, payload: dict, session: Session = Depends(get_session), current_user=None
 ):
     """
     Import the configuration files.
     """
 
     _ = current_user
-
     try:
-        vertical_text = open("vertical.json", "r", encoding="utf-8").read()
-        vertical = Vertical(**(json.loads(vertical_text)))
-    except Exception as e:
-        print(e)
-        return e
+        nodes = payload["nodes"]
+    except KeyError:
+        return {"error": "Missing 'nodes' key in the JSON payload"}
 
-    sensor_types = []
-    for item in vertical.sensor_types:
-        sensor_types.append(item.name)
-
-    print(sensor_types)
-
-    try:
-        node_text = open("area.json", "r", encoding="utf-8").read()
-        area = Area(**(json.loads(node_text)))
-    except Exception as e:
-        print(e)
-        return e
-
-    error = False
-    for loc in area.locations:
-        for sensor in loc.sensors:
-            if sensor.sensor_type not in sensor_types:
-                error_msg = f"sensor type {sensor.sensor_type} not found"
-                print(error_msg)
-                error = True
-                break
-            continue
-        if error:
-            break
-    if error:
-        return error_msg
-
-    db_vertical = insert_vertical(vertical, session)
-    print("created vertical")
-
-    for item in vertical.sensor_types:
-        insert_sensor_type(item, session, db_vertical.id)
-
-    print("created sensor types")
-
-    insert_all_node(area, session)
-    print("created all nodes")
-
-    _ = request
-    return True
+    return {"nodes" : nodes}
