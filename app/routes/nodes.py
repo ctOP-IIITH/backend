@@ -224,6 +224,7 @@ def get_node(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
+            DBNode.name
         )
         .all()
     )
@@ -271,6 +272,7 @@ def get_nodes(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
+            DBNode.name
         )
         .first()
     )

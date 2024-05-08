@@ -60,7 +60,8 @@ def import_conf(
             sensor_type_id=node_data['sensor_type_id'],
             latitude=node_data['latitude'],
             longitude=node_data['longitude'],
-            area=node_data['area']
+            area=node_data['area'],
+            name=node_data['name']
         )
         create_node(node, request, session, current_user,node_data=node_data, bulk_import=True, created_nodes=created_nodes)
 

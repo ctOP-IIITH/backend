@@ -215,7 +215,8 @@ def create_node(
             sensor_type_id=node_data['sensor_type_id'],
             latitude=node_data['latitude'],
             longitude=node_data['longitude'],
-            area=node_data['area']
+            area=node_data['area'],
+            name=node_data['name']
         )
     _, _ = current_user, request
 
@@ -228,6 +229,13 @@ def create_node(
         if con is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Sensor type not found"
+            )
+        
+        print(node.name)
+        existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
+        if existing_node:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Node with name already exists "
             )
 
         vert_name = get_vertical_name(node.sensor_type_id, session)
@@ -244,7 +252,7 @@ def create_node(
         )
 
         response = om2m.create_container(res_id, f"{vert_name}", labels=[vert_name, res_id])
-
+        print(response)
         if response.status_code == 201:
             res_data = om2m.create_container(
                 "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
@@ -269,14 +277,17 @@ def create_node(
                 node_name=res_id,
                 node_data_orid=res_data.json()["m2m:cnt"]["ri"].split("/")[-1],
                 token_num=None,
+                name=node.name
             )
-
+            print("*************************************************************************************\n")
+            print(f"RESPONSE -> {response.json()['m2m:cnt']['ri'].split('/')[-1]}, NAME -> {res_id}, ORID -> {res_data.json()['m2m:cnt']['ri'].split('/')[-1]} ")
+            print("*************************************************************************************\n")
             if res_data.status_code == 201 and res_desc.status_code == 201:
                 session.add(new_node)
                 session.commit()
 
                 # Update token_num with the generated id
-                new_node.token_num = new_node.id
+                new_node.token_num = new_node.id # increases cnt of /cin
                 session.commit()
 
                 if con:
