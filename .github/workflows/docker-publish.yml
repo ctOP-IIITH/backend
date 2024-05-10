@@ -27,4 +27,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: vjspranav/ctop-backend:${{ github.sha }}, vjspranav/ctop-backend
+          tags: smartcityresearch/ctop-backend:${{ github.sha }}, smartcityresearch/ctop-backend
