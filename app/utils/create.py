@@ -207,8 +207,7 @@ def create_node(
     session: Session = Depends(get_session),
     current_user=None,
     node_data=None,
-    bulk_import = False,
-    created_nodes = []
+    bulk_import=False
 ):
     if node_data:
         node = NodeCreate(
@@ -227,24 +226,17 @@ def create_node(
             .first()
         )
         if con is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Sensor type not found"
-            )
-        
-        print(node.name)
+            return {"status": "error", "message": "Sensor type not found"}
+
+        # print(node.name)
         existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
         if existing_node:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Node with name already exists "
-            )
+            return {"status": "error", "message": "Node with name already exists"}
 
         vert_name = get_vertical_name(node.sensor_type_id, session)
         if vert_name is None:
             print("vertical not found")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Non Existing Domain, please check the sensor type",
-            )
+            return {"status": "error", "message": "Non Existing Domain, please check the sensor type"}
 
         print(vert_name, node.sensor_type_id, node.latitude, node.longitude)
         res_id = get_node_code(
@@ -287,13 +279,13 @@ def create_node(
                 session.commit()
 
                 # Update token_num with the generated id
-                new_node.token_num = new_node.id # increases cnt of /cin
+                new_node.token_num = new_node.id  # increases cnt of /cin
                 session.commit()
 
                 if con:
                     parameters = str(con.parameters)
                 else:
-                    raise HTTPException(status_code=404, detail="Sensor type not found")
+                    return {"status": "error", "message": "Sensor type not found"}
                 sensor = om2m.create_cin(
                     f"{vert_name}/{res_id}",
                     "Descriptor",
@@ -302,31 +294,19 @@ def create_node(
                 ).status_code
                 print(sensor)
                 if sensor == 201:
-                    if node_data: # TODO change !
-                        created_nodes.append(node_data)
+                    if node_data:
+                        return {"status": "success", "message": "Node created", "node": node_data}
                     else:
-                        return "201: Node Created"
-
+                        return {"status": "success", "message": "Node created"}
                 else:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="Error creating node",
-                    )
+                    return {"status": "error", "message": "Error creating node"}
             else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Error creating node",
-                )
-
+                return {"status": "error", "message": "Error creating node"}
         elif response.status_code == 409:
-            raise HTTPException(status_code=409, detail="Node already exists")
+            return {"status": "error", "message": "Node already exists"}
         else:
             print(response.status_code)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error creating node",
-            )
+            return {"status": "error", "message": "Error creating node"}
 
-    except HTTPException as e:
-        return {"error": str(e.detail)}
-    
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

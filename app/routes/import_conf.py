@@ -26,7 +26,6 @@ from app.schemas.nodes import NodeCreate
 router = APIRouter()
 om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 
-
 @router.post("/import")
 @token_required
 @admin_required
@@ -46,24 +45,34 @@ def import_conf(
     sensor_types = session.query(DBSensorType).all()  # get all the sensors
     sensor_name_to_id = {sensor_type.res_name: sensor_type.id for sensor_type in sensor_types}
 
+    created_nodes, failed_nodes, invalid_sensor_nodes = [], [], []
+
     for node in nodes:
         sensor_name = node['sensor_name']
         if sensor_name in sensor_name_to_id:
             node['sensor_type_id'] = sensor_name_to_id[sensor_name]
         else:
-            return {"error": f"Sensor type '{sensor_name}' not found"}
+            print(f"{node['name']} --> {sensor_name} not found")
+            invalid_sensor_nodes.append({"node": node, "error": f"Sensor type '{sensor_name}' not found"})
+            continue  
 
-
-    created_nodes = []
-    for node_data in nodes:
-        node = NodeCreate(
-            sensor_type_id=node_data['sensor_type_id'],
-            latitude=node_data['latitude'],
-            longitude=node_data['longitude'],
-            area=node_data['area'],
-            name=node_data['name']
+        node_data = NodeCreate(
+            sensor_type_id=node['sensor_type_id'],
+            latitude=node['latitude'],
+            longitude=node['longitude'],
+            area=node['area'],
+            name=node['name']
         )
-        create_node(node, request, session, current_user,node_data=node_data, bulk_import=True, created_nodes=created_nodes)
+        result = create_node(node_data, request, session, current_user, node_data=node, bulk_import=True)
+        print(f"{node['name']} --> {result['message']}")
 
+        if result["status"] == "success":
+            created_nodes.append(result["node"])
+        else:
+            failed_nodes.append({"node": node, "error": result["message"]})
 
-    return {"nodes": created_nodes}
+    return {
+        "created_nodes": created_nodes,
+        "failed_nodes": failed_nodes,
+        "invalid_sensor_nodes": invalid_sensor_nodes
+    }
