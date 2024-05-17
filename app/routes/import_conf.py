@@ -1,13 +1,15 @@
 """
 This module defines the user routes for importing the configuration files.
 """
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, File, UploadFile
 from sqlalchemy.orm import Session
 from app.utils.om2m_lib import Om2m
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.database import get_session
 from app.config.settings import OM2M_URL
+import csv
+from io import StringIO
 
 from app.auth.auth import (
     token_required,
@@ -65,6 +67,57 @@ def import_conf(
         )
         result = create_node(node_data, request, session, current_user, node_data=node, bulk_import=True)
         print(f"{node['name']} --> {result['message']}")
+
+        if result["status"] == "success":
+            created_nodes.append(result["node"])
+        else:
+            failed_nodes.append({"node": node, "error": result["message"]})
+
+    return {
+        "created_nodes": created_nodes,
+        "failed_nodes": failed_nodes,
+        "invalid_sensor_nodes": invalid_sensor_nodes
+    }
+
+@router.post("/import_csv")
+@token_required
+@admin_required
+def import_csv(
+    request: Request, file: UploadFile = File(...), session: Session = Depends(get_session), current_user=None
+):
+    """
+    Import nodes from a CSV file.
+    """
+    _ = current_user
+    try:
+        csv_data = file.file.read().decode('utf-8')
+    except Exception as e:
+        return {"error": f"Error reading CSV file: {str(e)}"}
+
+    reader = csv.DictReader(StringIO(csv_data), fieldnames=['latitude', 'longitude', 'area', 'sensor_name', 'domain', 'name'])
+    nodes = list(reader)
+
+    sensor_types = session.query(DBSensorType).all()
+    sensor_name_to_id = {sensor_type.res_name: sensor_type.id for sensor_type in sensor_types}
+
+    created_nodes, failed_nodes, invalid_sensor_nodes = [], [], []
+
+    for node in nodes:
+        sensor_name = node['sensor_name']
+        if sensor_name in sensor_name_to_id:
+            node['sensor_type_id'] = sensor_name_to_id[sensor_name]
+        else:
+            invalid_sensor_nodes.append({"node": node, "error": f"Sensor type '{sensor_name}' not found"})
+            continue
+
+        node_data = NodeCreate(
+            sensor_type_id=node['sensor_type_id'],
+            latitude=float(node['latitude']),
+            longitude=float(node['longitude']),
+            area=node['area'],
+            name=node['name']
+        )
+        result = create_node(node_data, request, session, current_user, node_data=node, bulk_import=True)
 
         if result["status"] == "success":
             created_nodes.append(result["node"])
