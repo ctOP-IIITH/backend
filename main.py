@@ -12,7 +12,7 @@ from app.routes.verticals import router as verticals_router
 from app.routes.subscribe import router as subscribe_router
 from app.routes.import_conf import router as import_conf_router
 from app.routes.token import router as token_router
-from app.database import engine as database, get_session, Base, reset_database
+from app.database import engine as database, Base, get_session, reset_database
 from app.utils.initial_setup import initial_setup
 from app.routes.nodes import router as nodes_router
 from app.routes.cin import router as cin_router
@@ -101,6 +101,12 @@ async def shutdown():
     This function is called when the application shuts down. It disconnects from the database.
     """
     get_session().close()
+
+
+# create a / endpoint
+@app.get("/")
+def read_root():
+    return {"message": "Hello World"}
 
 
 # include user_router with prefix /user

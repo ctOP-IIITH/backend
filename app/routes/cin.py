@@ -177,17 +177,18 @@ def delete_cin(
             status_code=status.HTTP_404_NOT_FOUND, detail="Node token not found"
         )
 
-    try:
-        response = om2m.delete_resource(f"{cin.path}/{cin.cin_id}")
-        if response.status_code == 200:
-            # the CIN can be deleted from the database (CLARIFICATION REQUIRED)
-            raise HTTPException(status_code=200, detail="CIN deleted Successfully")
-        elif response.status_code == 404:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="CIN not found"
-            )
-    except Exception as e:
+    response = om2m.delete_resource(f"{cin.path}/{cin.cin_id}")
+    print(response.status_code)
+    if response.status_code == 200:
+        # the CIN can be deleted from the database (CLARIFICATION REQUIRED)
+        return {"status": "CIN deleted"}
+    elif response.status_code == 404:
+        print("CIN not found")
         raise HTTPException(
-            status_code=500,
-            detail=f"Error deleting CIN. {e}",
+            status_code=status.HTTP_404_NOT_FOUND, detail="CIN not found"
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error deleting CIN",
         )

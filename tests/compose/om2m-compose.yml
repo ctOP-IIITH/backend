@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  mongo-db:
+    image: mongo:5.0
+    restart: always
+    networks:
+      - ctop-network
+
+  om2m:
+    image: vjspranav/ctop-om2m:latest
+    platform: linux/amd64
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 7112:8200
+    depends_on:
+      - mongo-db
+    restart: always
+    networks:
+      - ctop-network
+    environment:
+      - MONGO_URL=mongo-db:27017
+      - MONGO_USER=om2m
+      - MONGO_PASSWORD=om2m
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=admin
+
+networks:
+  ctop-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16

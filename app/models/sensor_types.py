@@ -15,9 +15,9 @@ class SensorTypes(Base):
 
     id = Column(Integer, primary_key=True)
     res_name = Column(String(50), nullable=False)
-    parameters = Column(ARRAY(String(50)), nullable=False)
-    data_types = Column(ARRAY(String(50)), nullable=False)
-    labels = Column(ARRAY(String(50)), nullable=False)
+    parameters = Column(ARRAY(String(50)), nullable=True)
+    data_types = Column(ARRAY(String(50)), nullable=True)
+    labels = Column(ARRAY(String(50)), nullable=True)
     vertical_id = Column(Integer, ForeignKey("verticals.id"))
     # combination of vertical_id and res_name should be unique
     __table_args__ = (
