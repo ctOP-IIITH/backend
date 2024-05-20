@@ -80,12 +80,12 @@ def create_cin(
     bearer_auth_token = bearer_auth_token.split(" ")[1]
 
     # Hash
-    # hash_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
-    # if bearer_auth_token != hash_token:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Authorization token is invalid",
-    #     )
+    hash_token = create_hash([vendor.email, node.node_data_orid], JWT_SECRET_KEY)
+    if bearer_auth_token != hash_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization token is invalid",
+        )
 
     vertical_name = get_vertical_name(node.sensor_type_id, session)
     print(node.orid, vertical_name)
@@ -177,7 +177,6 @@ def delete_cin(
             status_code=status.HTTP_404_NOT_FOUND, detail="Node token not found"
         )
 
-    
     response = om2m.delete_resource(f"{cin.path}/{cin.cin_id}")
     print(response.status_code)
     if response.status_code == 200:
@@ -193,4 +192,3 @@ def delete_cin(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error deleting CIN",
         )
-        

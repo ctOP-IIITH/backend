@@ -2,7 +2,7 @@
 This module defines the Vertical model.
 """
 
-from sqlalchemy import inspect, Column, Integer, String, ARRAY
+from sqlalchemy import Column, Integer, String, ARRAY
 from app.database import Base
 
 
