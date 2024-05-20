@@ -62,16 +62,16 @@ def initialize():
                 res = requests.get(OM2M_URL, timeout=5)
                 # if 404
                 if res.status_code == 404:
-                    raise requests.exceptions.RequestException("OM2M not found")
+                    raise requests.exceptions.RequestException("Mobius not found")
                 elif res.status_code == 503:
-                    raise requests.exceptions.RequestException("OM2M not ready")
-                print("Connection to OM2M successful.")
+                    raise requests.exceptions.RequestException("Mobius not ready")
+                print("Connection to Mobius successful.")
                 break
             except requests.exceptions.RequestException:
                 print(f"Attempt {i+1} failed. Retrying in 10 seconds...")
                 time.sleep(10)
         else:
-            print("All attempts to connect to OM2M failed. Exiting program.")
+            print("All attempts to connect to Mobius failed. Exiting program.")
             sys.exit(1)
         initial_setup(db)
 
