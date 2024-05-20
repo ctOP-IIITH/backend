@@ -129,8 +129,8 @@ def create_cin(
         con.append(str(cin[param]))
         print(con)
     response = om2m.create_cin(
-        None,
-        node.node_data_orid,
+        vertical_name,
+        node.node_name,
         str(con),
         lbl=list(cin.keys()),
     )
