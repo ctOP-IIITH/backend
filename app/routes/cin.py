@@ -109,7 +109,7 @@ def create_cin(
                 detail="Missing parameter " + param,
             )
         expected_type = sensor_type.data_types[idx]
-        if expected_type == "str":
+        if expected_type == "str" or expected_type == "string":
             expected_type = str
         elif expected_type == "int":
             expected_type = int

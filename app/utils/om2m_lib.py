@@ -110,7 +110,7 @@ class Om2m:
         return r
 
     def delete_resource(self, resource_path, timeout=None):
-        print(f"Deleting {resource_path}", "XM2MORIGIN", XM2MORIGIN)
+        print(f"Deleting {resource_path}", "XM2MORIGIN", self.XM2MORIGIN)
         headers = {
             "Accept": "application/json",
             "X-M2M-RI": self.XM2MRI,
