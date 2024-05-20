@@ -60,7 +60,7 @@ class Om2m:
             json=data,
             timeout=timeout,
         )
-        return r    
+        return r
 
     def create_subscription(self, resource_path, rn, nu, exc=10, timeout=None):
         headers = {
@@ -70,10 +70,8 @@ class Om2m:
         }
         payload = {
             "m2m:sub": {
-                "rn":rn,
-                "enc": {
-                    "net": ["3"]
-                },
+                "rn": rn,
+                "enc": {"net": ["3"]},
                 "nu": [nu],
                 "exc": exc,
             }
@@ -86,7 +84,7 @@ class Om2m:
             timeout=timeout,
         )
         return r
-    
+
     def get_subscription(self, resource_path, timeout=None):
         headers = {
             "X-M2M-RI": self.XM2MRI,
@@ -98,7 +96,7 @@ class Om2m:
             timeout=timeout,
         )
         return r
-    
+
     def delete_subscription(self, resource_path, timeout=None):
         headers = {
             "X-M2M-RI": self.XM2MRI,
