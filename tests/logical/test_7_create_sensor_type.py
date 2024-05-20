@@ -1,11 +1,11 @@
 from tests import client
 import time
 
+
 def test_create_sensor_type():
     time.sleep(1)
     response = client.post(
-        "/user/login", json={"email": "admin@localhost",
-                                "password": "admin"}
+        "/user/login", json={"email": "admin@localhost", "password": "admin"}
     )
     access_token = response.json()["access_token"]
 
@@ -24,13 +24,14 @@ def test_create_sensor_type():
 
     response = client.post(
         "/sensor-types/create",
-        json={"res_name": "logical_sensor_type",
-               "parameters": ["logic_parameter"],
-               "data_types": ["logic_data_type"],
-               "labels": ["logic_label"],
-               "vertical_id": vertical_id
+        json={
+            "res_name": "logical_sensor_type",
+            "parameters": ["test_parameter"],
+            "data_types": ["str"],
+            "labels": ["logic_label"],
+            "vertical_id": vertical_id,
         },
-        headers={"Authorization": f"Bearer {access_token}"}, 
+        headers={"Authorization": f"Bearer {access_token}"},
     )
 
     assert response.status_code == 200
@@ -45,10 +46,9 @@ def test_create_sensor_type():
         {
             "id": 1,
             "res_name": "logical_sensor_type",
-            "parameters": ["logic_parameter"],
-            "data_types": ["logic_data_type"],
+            "parameters": ["test_parameter"],
+            "data_types": ["str"],
             "labels": ["logic_label"],
-            "vertical_id": vertical_id
+            "vertical_id": vertical_id,
         }
     ]
-

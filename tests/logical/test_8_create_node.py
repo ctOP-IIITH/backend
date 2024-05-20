@@ -1,6 +1,7 @@
 from tests import client
 import time
 
+
 def test_create_node():
     time.sleep(1)
     response = client.post(
@@ -23,16 +24,14 @@ def test_create_node():
 
     response = client.post(
         "/nodes/create-node",
-        json = {
-                "lbls": [],
-                "sensor_type_id": 1 ,
-                "latitude": 10,
-                "longitude": 90,
-                "area": "Kakinada"
-            },
+        json={
+            "lbls": [],
+            "sensor_type_id": 1,
+            "latitude": 10,
+            "longitude": 90,
+            "area": "Kakinada",
+        },
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
-    assert response.status_code == 200
-
-    
+    assert response.status_code == 201  # 201 Created

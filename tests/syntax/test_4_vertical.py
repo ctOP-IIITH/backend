@@ -1,9 +1,10 @@
-from tests import client 
+from tests import client
 from app.utils.delete_with_payload import CustomTestClient
 
 import pytest
 
 import time
+
 
 def test_create_ae():
     time.sleep(1)
@@ -16,26 +17,26 @@ def test_create_ae():
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "tst",
-                "labels": []
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "tst",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 422
 
     # checking if error comes if ae_short_name size is < 2
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "t",
-                "labels": []
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "t",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 422
 
     # checking if error comes when json data is missing
@@ -43,49 +44,50 @@ def test_create_ae():
         "/verticals/create-ae",
         json={},
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 422
 
-    # checking if error comes when json object value is not in the given format 
+    # checking if error comes when json object value is not in the given format
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "ts",
-                "labels": 0
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "ts",
+            "labels": 0,
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 422
 
     # checking if vertical is created or not with a unique name
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "ts",
-                "labels": []
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "ts",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 201
     assert response.json() == {"detail": "AE created"}
 
-    # checking if error comes when vertical of existing name gets created. 
+    # checking if error comes when vertical of existing name gets created.
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "ts",
-                "labels": []
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "ts",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 409
     assert response.json() == {"detail": "AE already exists"}
+
 
 def test_get_all_ae():
     time.sleep(1)
@@ -94,15 +96,15 @@ def test_get_all_ae():
     )
     access_token = response.json()["access_token"]
 
-    # Create one vertical and check if that information we got in the response of this getall_verticals api 
+    # Create one vertical and check if that information we got in the response of this getall_verticals api
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test_get_all_vertical",
-                "ae_description": "testing get-all verticals",
-                "ae_short_name": "tv",
-                "labels": []
-            },
+            "ae_name": "test_get_all_vertical",
+            "ae_description": "testing get-all verticals",
+            "ae_short_name": "tv",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 201
@@ -114,16 +116,21 @@ def test_get_all_ae():
     assert response.status_code == 200
 
     found = False
-    for obj in response:
-        if obj["ae_name"] == "test_get_all_vertical" and obj["ae_description"] == "testing get-all verticals" and \
-            obj["ae_short_name"] == "AE-tv" and obj["labels"] == ["test_get_all_vertical"]:
-            found = True 
-            break 
-    
+    print(response.json())
+    for obj in response.json():
+        if (
+            obj["res_name"] == "test_get_all_vertical"
+            and obj["description"] == "testing get-all verticals"
+            and obj["res_short_name"] == "AE-tv"
+            and obj["labels"] == ["test_get_all_vertical"]
+        ):
+            found = True
+            break
+
     assert found == True
-    
-    
-def test_delete_ae(): 
+
+
+def test_delete_ae():
     time.sleep(1)
     response = client.post(
         "/user/login", json={"email": "admin@localhost", "password": "admin"}
@@ -137,7 +144,7 @@ def test_delete_ae():
     )
     assert response.status_code == 422
 
-    # test invalid vertical id format (list) 
+    # test invalid vertical id format (list)
     response = client.delete_with_payload(
         "/verticals/delete-ae/[]",
         headers={"Authorization": f"Bearer {access_token}"},
@@ -173,12 +180,15 @@ def test_delete_ae():
     )
 
     id = 0
-    for obj in response:
-        if obj["ae_name"] == "test-vertical" and obj["ae_description"] == "testing purpose" and \
-            obj["ae_short_name"] == "AE-ts":
-            id = obj["id"] 
-            break 
-    
+    for obj in response.json():
+        if (
+            obj["res_name"] == "test-vertical"
+            and obj["description"] == "testing purpose"
+            and obj["res_short_name"] == "AE-ts"
+        ):
+            id = obj["id"]
+            break
+
     assert id != 0
 
     response = client.delete_with_payload(
@@ -192,13 +202,13 @@ def test_delete_ae():
     response = client.post(
         "/verticals/create-ae",
         json={
-                "ae_name": "test-vertical",
-                "ae_description": "testing purpose",
-                "ae_short_name": "ts",
-                "labels": []
-            },
+            "ae_name": "test-vertical",
+            "ae_description": "testing purpose",
+            "ae_short_name": "ts",
+            "labels": [],
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 201
 
     ## 2. Get the vertical id
@@ -208,63 +218,58 @@ def test_delete_ae():
     )
 
     id = 0
-    for obj in response:
-        if obj["ae_name"] == "test-vertical" and obj["ae_description"] == "testing purpose" and \
-            obj["ae_short_name"] == "AE-ts":
-            id = obj["id"] 
-            break 
-    
+    for obj in response.json():
+        if (
+            obj["res_name"] == "test-vertical"
+            and obj["description"] == "testing purpose"
+            and obj["res_short_name"] == "AE-ts"
+        ):
+            id = obj["id"]
+            break
+
     assert id != 0
 
     ## 3. Create sensor type
     response = client.post(
         "sensor-types/create",
         json={
-                "res_name": "test-sensor",
-                "parameters": [
-                    "string"
-                ],
-                "data_types": [
-                    "string"
-                ],
-                "labels": [],
-                "vertical_id": id
-            },
+            "res_name": "test-sensor",
+            "parameters": ["string"],
+            "data_types": ["string"],
+            "labels": [],
+            "vertical_id": id,
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 200
 
-    ## 4. Get the sensor id 
+    ## 4. Get the sensor id
     response = client.get(
-        "/sensor-types/get-all",
-        json={
-            "vertical_id": id
-        },
+        f"/sensor-types/get/{id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
     sensor_id = 0
-    for obj in response:
+    for obj in response.json():
         if obj["res_name"] == "test-sensor":
-            sensor_id = obj["id"] 
-            break 
-    
+            sensor_id = obj["id"]
+            break
+
     assert sensor_id != 0
 
-    ## 5. Create node 
+    ## 5. Create node
     response = client.post(
         "nodes/create-node",
         json={
-                "lbls": [],
-                "sensor_type_id": sensor_id,
-                "latitude": 0.2,
-                "longitude": 0.3,
-                "area": "string"
-             },
+            "lbls": [],
+            "sensor_type_id": sensor_id,
+            "latitude": 0.2,
+            "longitude": 0.3,
+            "area": "string",
+        },
         headers={"Authorization": f"Bearer {access_token}"},
-    ) 
+    )
     assert response.status_code == 201
-    assert response.json() == {"detail": "Node created"}
 
     ## 6. Now delete vertical should not work as it has nodes
     response = client.delete_with_payload(
@@ -273,5 +278,3 @@ def test_delete_ae():
     )
     assert response.status_code == 409
     assert response.json() == {"detail": "AE has nodes. Delete nodes first"}
-
-    

@@ -31,7 +31,7 @@ om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 # TODO : Add the Database functions
 
 
-@router.post("/create-node")
+@router.post("/create-node", status_code=201)
 @token_required
 @admin_required
 def create_node(
@@ -126,7 +126,19 @@ def create_node(
             ).status_code
             print(sensor)
             if sensor == 201:
-                raise HTTPException(status_code=201, detail="Node created")
+                # return 201 with node details
+                return {
+                    "node_name": new_node.node_name,
+                    "orid": new_node.orid,
+                    "node_data_orid": new_node.node_data_orid,
+                    "area": new_node.area,
+                    "sensor_type": get_sensor_type_name(node.sensor_type_id, session),
+                    "sensor_node_number": new_node.sensor_node_number,
+                    "lat": new_node.lat,
+                    "long": new_node.long,
+                    "token_num": new_node.token_num,
+                }
+
             else:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
