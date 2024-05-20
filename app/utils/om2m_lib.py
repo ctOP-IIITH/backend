@@ -60,6 +60,55 @@ class Om2m:
             json=data,
             timeout=timeout,
         )
+        return r    
+
+    def create_subscription(self, resource_path, rn, nu, exc=10, timeout=None):
+        headers = {
+            "X-M2M-RI": self.XM2MRI,
+            "X-M2M-Origin": self.XM2MORIGIN,
+            "Content-Type": "application/json;ty=23",
+        }
+        payload = {
+            "m2m:sub": {
+                "rn":rn,
+                "enc": {
+                    "net": ["3"]
+                },
+                "nu": [nu],
+                "exc": exc,
+            }
+        }
+
+        r = requests.post(
+            f"{self.url}/{resource_path}",
+            headers=headers,
+            json=payload,
+            timeout=timeout,
+        )
+        return r
+    
+    def get_subscription(self, resource_path, timeout=None):
+        headers = {
+            "X-M2M-RI": self.XM2MRI,
+            "X-M2M-Origin": self.XM2MORIGIN,
+        }
+        r = requests.get(
+            f"{self.url}/{resource_path}?rcn=1",
+            headers=headers,
+            timeout=timeout,
+        )
+        return r
+    
+    def delete_subscription(self, resource_path, timeout=None):
+        headers = {
+            "X-M2M-RI": self.XM2MRI,
+            "X-M2M-Origin": self.XM2MORIGIN,
+        }
+        r = requests.delete(
+            f"{self.url}/{resource_path}",
+            headers=headers,
+            timeout=timeout,
+        )
         return r
 
     def delete_resource(self, resource_path, timeout=None):
