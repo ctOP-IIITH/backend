@@ -12,8 +12,8 @@ elif [[ $1 == "--test" ]]; then
     # Copy test .env file
     cp tests/.env.test .env
     cd tests
-    docker-compose -f ./compose/om2m-compose.yml up -d
-    echo "om2m docker container started"
+    docker-compose -f ./compose/mobius-compose.yml up -d
+    echo "mobius docker container started"
     docker-compose -f ./compose/postgres-compose.yml up -d
     echo "postgres docker container started"
     # Run tests
@@ -31,8 +31,6 @@ elif [[ $1 == "--test" ]]; then
     docker volume prune -f
     echo "docker volumes pruned"
     # Delete test om2m db
-    echo "Deleting test om2m db"
-
     cd ..
     # Restore .env file
     if [[ -f .env.bak ]]; then
