@@ -18,11 +18,11 @@ from app.models.node import Node as DBNode
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.user import User as DBUser
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI, JWT_SECRET_KEY
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 @router.post("/create/{token_id}")
@@ -101,36 +101,36 @@ def create_cin(
     # check if all of sensor_type.paramaters are in cin
     # if not, raise error
     # if it is then check if datatype matches with sensor_type.data_tpes[idx]
-    # for idx, param in enumerate(sensor_type.parameters):
-    #     print(idx, param, cin, param in cin)
-    #     if param not in cin:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_400_BAD_REQUEST,
-    #             detail="Missing parameter " + param,
-    #         )
-    #     expected_type = sensor_type.data_types[idx]
-    #     if expected_type == "str":
-    #         expected_type = str
-    #     elif expected_type == "int":
-    #         expected_type = int
-    #     elif expected_type == "float":
-    #         expected_type = float
+    for idx, param in enumerate(sensor_type.parameters):
+        print(idx, param, cin, param in cin)
+        if param not in cin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing parameter " + param,
+            )
+        expected_type = sensor_type.data_types[idx]
+        if expected_type == "str" or expected_type == "string":
+            expected_type = str
+        elif expected_type == "int":
+            expected_type = int
+        elif expected_type == "float":
+            expected_type = float
 
-    #     if not isinstance(cin[param], expected_type):
-    #         raise HTTPException(
-    #             status_code=status.HTTP_400_BAD_REQUEST,
-    #             detail="Wrong data type for "
-    #             + param
-    #             + ". Expected "
-    #             + str(sensor_type.data_types[idx])
-    #             + " but got "
-    #             + str(type(cin[param])),
-    #         )
-    #     con.append(str(cin[param]))
-    #     print(con)
+        if not isinstance(cin[param], expected_type):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Wrong data type for "
+                + param
+                + ". Expected "
+                + str(sensor_type.data_types[idx])
+                + " but got "
+                + str(type(cin[param])),
+            )
+        con.append(str(cin[param]))
+        print(con)
     response = om2m.create_cin(
-        None,
-        node.node_data_orid,
+        vertical_name,
+        node.node_name,
         str(con),
         lbl=list(cin.keys()),
     )

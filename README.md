@@ -27,6 +27,7 @@ These instructions will get you a copy of the project up and running on your loc
    ALGORITHM="<your_algorithm>"  # e.g., "HS256"
    JWT_SECRET_KEY="<your_jwt_secret_key>"  # should be kept secret
    JWT_REFRESH_SECRET_KEY="<your_jwt_refresh_secret_key>"  # should be kept secret
+   MOBIUS_XM2MRI=12345
     ```
     Replace the placeholders with your actual values. 
 7. Run the server: `./run.sh`

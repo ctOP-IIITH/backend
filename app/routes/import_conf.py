@@ -17,7 +17,7 @@ from app.utils.create import (
 from app.schemas.import_conf import Vertical, Area
 
 from app.database import get_session
-from app.config.settings import OM2M_URL
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI
 from app.auth.auth import (
     token_required,
     admin_required,
@@ -25,7 +25,7 @@ from app.auth.auth import (
 
 
 router = APIRouter()
-om2m = Om2m("admin", "admin", OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 @router.get("/import")
