@@ -91,7 +91,7 @@ def get_sensor_type(
         session.query(DBSensorType).filter(DBSensorType.vertical_id == vert_id).all()
     )
     print(sensor_types)
-    if sensor_types is None or len(sensor_types) == 0:
+    if sensor_types is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
         )
