@@ -147,26 +147,55 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
     Args:
         token (TokenRefresh): The refresh token.
-        db (Session, optional): The database session. Defaults to Depends(get_db).
+        db (Session, optional): The database session. Defaults to Depends(get_session).
 
     Raises:
-        HTTPException: If the refresh token is invalid.
+        HTTPException: If the refresh token is invalid or the user is not found.
 
     Returns:
         dict: A dictionary containing the new access token.
     """
-    payload = decode_refresh_jwt(token.refresh_token)
-    user_id = payload.get("sub")
-    user = db.query(User).filter(User.id == user_id).first()
+    try:
+        payload = decode_refresh_jwt(token.refresh_token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Invalid refresh token.")
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid refresh token.")
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
 
-    access_token = create_access_token(user.id)
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-    }
+        # Check if the refresh token exists in the TokenTable
+        refresh_token_data = (
+            db.query(TokenTable)
+            .filter(
+                TokenTable.user_id == user_id,
+                TokenTable.refresh_token == token.refresh_token,
+                TokenTable.status == True,
+            )
+            .first()
+        )
+
+        if not refresh_token_data:
+            raise HTTPException(status_code=400, detail="Invalid refresh token.")
+
+        # Create a new access token
+        access_token = create_access_token(user.id)
+
+        # Update the TokenTable with the new access token
+        refresh_token_data.access_token = access_token
+        db.commit()
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid refresh token.") from e
 
 
 @router.get("/getusers")

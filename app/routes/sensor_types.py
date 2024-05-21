@@ -8,7 +8,6 @@ from app.database import get_session
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.schemas.sensor_types import (
     SensorTypeCreate,
-    SensorTypeGetAll,
     SensorTypeDelete,
 )
 
