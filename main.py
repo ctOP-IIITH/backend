@@ -109,9 +109,9 @@ app.include_router(nodes_router, prefix="/nodes", tags=["Nodes"])
 app.include_router(import_conf_router, prefix="/import", tags=["Import Configurations"])
 app.include_router(cin_router, prefix="/cin", tags=["Content Instance"])
 app.include_router(sensor_types_router, prefix="/sensor-types", tags=["Sensor Types"])
-app.include_router(token_router, prefix="/token")
-app.include_router(stats_router, prefix="/stats")
-app.include_router(subscribe_router, prefix="/subscription")
+app.include_router(token_router, prefix="/token", tags=["Tokens"])
+app.include_router(stats_router, prefix="/stats", tags=["Home Page Stats"])
+app.include_router(subscribe_router, prefix="/subscription", tags=["Subscription"])
 
 # Include get_session as a dependency globally
 app.dependency_overrides[get_session] = get_session

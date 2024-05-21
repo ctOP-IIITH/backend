@@ -123,3 +123,25 @@ def get_node_code(vert: str, sensor_type: int, lat: int, long: int, db: Session)
     code = f"{vert_code}{sensor_type:02d}-{pin_code:04}-{sensor_node_number[0]:04d}"
     print(code)
     return code
+
+
+def get_node_coordinates_by_name(node_id: str, db: Session):
+    "Returns the coordinates (latitude and longitude) from node table"
+    cur_node = db.query(DBNode).filter(DBNode.node_name == node_id).first()
+    if not cur_node:
+        return None
+    data = {"node_id": node_id, "latitude": cur_node.lat, "longitude": cur_node.long}
+    return data
+
+
+def get_node_coordinates_by_id(node_id: str, db: Session):
+    "Returns the node name and coordinates of the particular node by node.id"
+    cur_node = db.query(DBNode).filter(DBNode.id == node_id).first()
+    if not cur_node:
+        return None
+    data = {
+        "node_id": cur_node.node_name,
+        "latitude": cur_node.lat,
+        "longitude": cur_node.long,
+    }
+    return data

@@ -15,6 +15,10 @@ from app.utils.utils import (
     get_node_code,
     create_hash,
 )
+from app.utils.utils import (
+    get_node_coordinates_by_id,
+    get_node_coordinates_by_name,
+)
 from app.schemas.nodes import NodeCreate, NodeAssign
 from app.models.vertical import Vertical as DBVertical
 from app.models.node import Node as DBNode
@@ -27,8 +31,6 @@ from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECR
 router = APIRouter()
 
 om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
-
-# TODO : Add the Database functions
 
 
 @router.post("/create-node")
@@ -510,3 +512,70 @@ def delete_node(
         )
 
     return response.status_code
+
+
+@router.get("/meta/id/{node_id}")
+def node_lat_long(
+    node_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    """
+    This function retrieves the latitude and longitude coordinates of a specific node.
+
+    Args:
+        node_id (str): The unique identifier of the node.
+        request (Request): The HTTP request object. (not used in this function)
+        session (Session): The database session object.
+        current_user (Any, optional): The currently logged-in user. (not used in this function)
+
+    Returns:
+        tuple: A tuple containing the latitude and longitude coordinates of the node.
+
+    Raises:
+        HTTPException: An HTTPException with status code 500 (Internal Server Error)
+        if there is an error retrieving the coordinates.
+    """
+    _, _ = current_user, request
+    
+    coordinates = get_node_coordinates_by_name(node_id, session)
+    if not coordinates:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Node ID not found"
+        )
+    return coordinates
+
+
+@router.get("/meta/vendor/{vendor_username}")
+def sensor_node_coordinates_all(
+    vendor_username: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
+    _, _ = current_user, request
+    
+    vendor = session.query(DBUser).filter(DBUser.email == vendor_username).first()
+    if not vendor:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Vendor not found",
+        )
+    vendor_id = vendor.id
+    nodes_vendor = (
+        session.query(DBNodeOwners)
+        .filter(DBNodeOwners.vendor_id == vendor_id)
+        .all()
+    )
+    if not nodes_vendor:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No nodes assigned for the given vendor"
+        )
+    nodes = [i.node_id for i in nodes_vendor]
+    data = []
+    for i in nodes:
+        data.append(get_node_coordinates_by_id(i, session))
+    return data
