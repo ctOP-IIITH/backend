@@ -228,7 +228,6 @@ def create_node(
         if con is None:
             return {"status": "error", "message": "Sensor type not found"}
 
-        # print(node.name)
         existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
         if existing_node:
             return {"status": "error", "message": "Node with name already exists"}
