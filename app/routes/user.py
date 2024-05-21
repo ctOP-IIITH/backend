@@ -47,6 +47,13 @@ def register_user(
         dict: A dictionary containing a success message.
     """
     _, _ = current_user, request
+
+    # if username or email or password is empty
+    if not user.username or not user.email or not user.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid input"
+        )
+
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -140,26 +147,55 @@ def refresh_token(token: TokenRefresh, db: Session = Depends(get_session)):
 
     Args:
         token (TokenRefresh): The refresh token.
-        db (Session, optional): The database session. Defaults to Depends(get_db).
+        db (Session, optional): The database session. Defaults to Depends(get_session).
 
     Raises:
-        HTTPException: If the refresh token is invalid.
+        HTTPException: If the refresh token is invalid or the user is not found.
 
     Returns:
         dict: A dictionary containing the new access token.
     """
-    payload = decode_refresh_jwt(token.refresh_token)
-    user_id = payload.get("sub")
-    user = db.query(User).filter(User.id == user_id).first()
+    try:
+        payload = decode_refresh_jwt(token.refresh_token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Invalid refresh token.")
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid refresh token.")
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
 
-    access_token = create_access_token(user.id)
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-    }
+        # Check if the refresh token exists in the TokenTable
+        refresh_token_data = (
+            db.query(TokenTable)
+            .filter(
+                TokenTable.user_id == user_id,
+                TokenTable.refresh_token == token.refresh_token,
+                TokenTable.status == True,
+            )
+            .first()
+        )
+
+        if not refresh_token_data:
+            raise HTTPException(status_code=400, detail="Invalid refresh token.")
+
+        # Create a new access token
+        access_token = create_access_token(user.id)
+
+        # Update the TokenTable with the new access token
+        refresh_token_data.access_token = access_token
+        db.commit()
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid refresh token.") from e
 
 
 @router.get("/getusers")
@@ -200,11 +236,17 @@ def am_i_admin(
     _, _ = request, session
 
     # stringify dict
-    return str({"admin": "True", "username": current_user.username})
+    return {"admin": True, "username": current_user.username}
 
 
 @router.post("/change-password")
-def change_password(request: ChangePassword, db: Session = Depends(get_session)):
+@token_required
+def change_password(
+    request: Request,
+    password_request: ChangePassword,
+    session: Session = Depends(get_session),
+    current_user=None,
+):
     """
     Changes the password of the user with the given email address.
 
@@ -218,20 +260,32 @@ def change_password(request: ChangePassword, db: Session = Depends(get_session))
     Returns:
         dict: A dictionary containing a success message.
     """
-    user = db.query(User).filter(User.email == request.email).first()
+    _, _ = request, current_user
+    user = session.query(User).filter(User.email == password_request.email).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
         )
 
-    if not verify_password(request.old_password, user.password):
+    if not verify_password(password_request.old_password, user.password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid old password"
         )
 
-    encrypted_password = get_hashed_password(request.new_password)
+    if not password_request.new_password or len(password_request.new_password) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid new password"
+        )
+
+    if password_request.old_password == password_request.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Old and new passwords cannot be the same",
+        )
+
+    encrypted_password = get_hashed_password(password_request.new_password)
     user.password = encrypted_password
-    db.commit()
+    session.commit()
 
     # TODO: Add to db, last password changed
     return {"message": "Password changed successfully"}
