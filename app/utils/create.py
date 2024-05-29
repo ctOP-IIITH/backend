@@ -230,7 +230,7 @@ def create_node(
 
         existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
         if existing_node:
-            return {"status": "error", "message": "Node with name already exists"}
+            return {"status": "error", "message": f"Node: {node.name} already exists"}
 
         vert_name = get_vertical_name(node.sensor_type_id, session)
         if vert_name is None:

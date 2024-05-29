@@ -44,13 +44,14 @@ def import_conf(
     except KeyError:
         return {"error": "Missing 'nodes' key in the JSON payload"}
 
+    if len(nodes) > 5000: return {"error": "Import less than 5000 nodes at one time!"}
     sensor_types = session.query(DBSensorType).all()  # get all the sensors
     sensor_name_to_id = {sensor_type.res_name: sensor_type.id for sensor_type in sensor_types}
 
     created_nodes, failed_nodes, invalid_sensor_nodes = [], [], []
 
     for node in nodes:
-        sensor_name = node['sensor_name']
+        sensor_name = node['sensor_type']
         if sensor_name in sensor_name_to_id:
             node['sensor_type_id'] = sensor_name_to_id[sensor_name]
         else:
@@ -94,16 +95,17 @@ def import_csv(
     except Exception as e:
         return {"error": f"Error reading CSV file: {str(e)}"}
 
-    reader = csv.DictReader(StringIO(csv_data), fieldnames=['latitude', 'longitude', 'area', 'sensor_name', 'domain', 'name'])
+    reader = csv.DictReader(StringIO(csv_data), fieldnames=['latitude', 'longitude', 'area', 'sensor_type', 'domain', 'name'])
     nodes = list(reader)
-
+    if len(nodes) > 5000: return {"error": "Import less than 5000 nodes at one time!"}
+    
     sensor_types = session.query(DBSensorType).all()
     sensor_name_to_id = {sensor_type.res_name: sensor_type.id for sensor_type in sensor_types}
 
     created_nodes, failed_nodes, invalid_sensor_nodes = [], [], []
 
     for node in nodes:
-        sensor_name = node['sensor_name']
+        sensor_name = node['sensor_type']
         if sensor_name in sensor_name_to_id:
             node['sensor_type_id'] = sensor_name_to_id[sensor_name]
         else:
