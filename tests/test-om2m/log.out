@@ -287,3 +287,298 @@ Response in Router= ResponsePrimitive [
 ]
 [2024-03-14 16:08:41,319 INFO] - org.eclipse.om2m.core.Activator 
 CSE Started
+[2024-06-18 03:17:35,541 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+Starting Data Mapper
+[2024-06-18 03:17:35,541 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+Registering XML Mapper Service..
+[2024-06-18 03:17:56,236 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+Starting Data Mapper
+[2024-06-18 03:17:56,237 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+Registering XML Mapper Service..
+[2024-06-18 03:18:03,621 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+XML Mapper service registered.
+[2024-06-18 03:18:03,621 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+Registering JSON Mapper Service..
+[2024-06-18 03:18:07,789 INFO] - org.eclipse.om2m.datamapping.jaxb.Activator 
+JSON Mapper service registered.
+[2024-06-18 03:18:07,793 INFO] - org.eclipse.om2m.binding.coap.Activator 
+Register CoAP RestClientService..
+[2024-06-18 03:18:07,794 INFO] - org.eclipse.om2m.binding.coap.Activator 
+Starting CoAP server
+[2024-06-18 03:18:07,822 INFO] - org.eclipse.om2m.binding.coap.Activator 
+CseService opened
+[2024-06-18 03:18:07,823 INFO] - org.eclipse.om2m.binding.http.Activator 
+Register HTTP RestClientService..
+[2024-06-18 03:18:07,827 INFO] - org.eclipse.om2m.binding.http.Activator 
+HTTP RestClientService is registered.
+[2024-06-18 03:18:07,932 INFO] - org.eclipse.om2m.persistence.eclipselink.Activator 
+Starting Persistence JPA plugin...
+[2024-06-18 03:18:07,934 INFO] - org.eclipse.om2m.core.Activator 
+Starting CSE...
+[2024-06-18 03:18:07,935 INFO] - org.eclipse.om2m.core.Activator 
+Added Data Mapper Service: application/xml
+[2024-06-18 03:18:07,935 INFO] - org.eclipse.om2m.core.Activator 
+Added Data Mapper Service: application/json
+[2024-06-18 03:18:07,935 INFO] - org.eclipse.om2m.persistence.eclipselink.internal.DBServiceJPAImpl 
+Initializing Database...
+[2024-06-18 03:18:07,936 INFO] - org.eclipse.om2m.persistence.eclipselink.internal.DBServiceJPAImpl 
+Creating new EntityManagerFactory...
+[2024-06-18 03:18:07,936 INFO] - org.eclipse.om2m.core.Activator 
+Rest client service discovered. Protocol: coap
+[2024-06-18 03:18:07,937 INFO] - org.eclipse.om2m.core.Activator 
+Rest client service discovered. Protocol: http
+[2024-06-18 03:18:07,940 INFO] - org.eclipse.om2m.binding.http.Activator 
+HttpService discovered
+[2024-06-18 03:18:07,941 INFO] - org.eclipse.om2m.binding.http.Activator 
+Register / context
+[2024-06-18 03:18:08,024 INFO] - org.eclipse.om2m.webapp.resourcesbrowser.json.Activator 
+HttpService discovered
+[2024-06-18 03:18:08,024 INFO] - org.eclipse.om2m.webapp.resourcesbrowser.json.Activator 
+Register /webpage http context
+[2024-06-18 03:18:08,031 INFO] - org.eclipse.om2m.sdt.comparator.xml.Activator 
+HttpService discovered
+[2024-06-18 03:18:08,032 INFO] - org.eclipse.om2m.sdt.comparator.xml.Activator 
+Register /comparator http context
+[2024-06-18 03:18:09,460 INFO] - org.eclipse.om2m.persistence.eclipselink.internal.DBServiceJPAImpl 
+DataBase initialized.
+[2024-06-18 03:18:09,478 INFO] - org.eclipse.om2m.persistence.eclipselink.Activator 
+Registering Database (JPA-EL) Service
+[2024-06-18 03:18:09,479 INFO] - org.eclipse.om2m.core.Activator 
+DataBase persistence service discovered
+[2024-06-18 03:18:09,480 INFO] - org.eclipse.om2m.core.thread.CoreExecutor 
+Creating thread pool with corePoolSize=5 & maximumSize=50
+[2024-06-18 03:18:09,483 INFO] - org.eclipse.om2m.core.CSEInitializer 
+Initializating the cseBase
+[2024-06-18 03:18:09,496 INFO] - org.eclipse.om2m.core.CSEInitializer 
+Create AccessControlPolicy resource
+[2024-06-18 03:18:09,537 INFO] - org.eclipse.om2m.core.CSEInitializer 
+Create CSEBase resource
+[2024-06-18 03:18:09,556 INFO] - org.eclipse.om2m.core.Activator 
+Registering CseService...
+[2024-06-18 03:18:09,571 INFO] - org.eclipse.om2m.sdt.home.monitoring.util.AeRegistration 
+createACP
+[2024-06-18 03:18:09,572 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/in-name,
+ from=admin:secretpassword,
+ resourceType=1,
+ content=org.eclipse.om2m.commons.resource.AccessControlPolicy@7d78f060,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,574 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/in-name
+[2024-06-18 03:18:09,577 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [AccessControlPolicyController]
+[2024-06-18 03:18:09,618 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,621 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/acp-224391635,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.AccessControlPolicy@16d83770
+]
+[2024-06-18 03:18:09,621 INFO] - org.eclipse.om2m.sdt.home.monitoring.util.AeRegistration 
+createACP OK org.eclipse.om2m.commons.resource.AccessControlPolicy@16d83770
+[2024-06-18 03:18:09,621 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/in-name,
+ from=admin:secretpassword,
+ resourceType=2,
+ content=org.eclipse.om2m.commons.resource.AE@44bc8d82,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,622 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/in-name
+[2024-06-18 03:18:09,624 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [AEController]
+[2024-06-18 03:18:09,654 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,654 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/CAE44650438,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.AE@cdb7a41
+]
+[2024-06-18 03:18:09,655 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/CAE44650438,
+ from=admin:secretpassword,
+ resourceType=3,
+ content=org.eclipse.om2m.commons.resource.Container@702cbea5,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,656 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/CAE44650438
+[2024-06-18 03:18:09,656 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [ContainerController]
+[2024-06-18 03:18:09,683 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,683 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/cnt-321772747,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.Container@670764e0
+]
+[2024-06-18 03:18:09,683 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/cnt-321772747,
+ from=admin:secretpassword,
+ resourceType=4,
+ content=org.eclipse.om2m.commons.resource.ContentInstance@4f06be2a,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,685 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/cnt-321772747
+[2024-06-18 03:18:09,686 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [ContentInstanceController]
+[2024-06-18 03:18:09,700 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,701 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/cin-417559644,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.ContentInstance@2b2aa443
+]
+[2024-06-18 03:18:09,701 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/CAE44650438,
+ from=admin:secretpassword,
+ resourceType=3,
+ content=org.eclipse.om2m.commons.resource.Container@5d12c7f3,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,702 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/CAE44650438
+[2024-06-18 03:18:09,702 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [ContainerController]
+[2024-06-18 03:18:09,723 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,723 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/cnt-312971707,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.Container@1e782ed4
+]
+[2024-06-18 03:18:09,723 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/cnt-312971707,
+ from=admin:secretpassword,
+ resourceType=4,
+ content=org.eclipse.om2m.commons.resource.ContentInstance@3a491883,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,724 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/cnt-312971707
+[2024-06-18 03:18:09,724 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [ContentInstanceController]
+[2024-06-18 03:18:09,733 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,733 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/cin-199036509,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.ContentInstance@2c0f55cc
+]
+[2024-06-18 03:18:09,735 INFO] - org.eclipse.om2m.core.Activator 
+IPE service discovered: HomeMonitoringPOA
+[2024-06-18 03:18:09,735 INFO] - org.eclipse.om2m.sdt.home.monitoring.Activator 
+Register test /Home_Monitoring_Application http context
+[2024-06-18 03:18:09,741 INFO] - org.eclipse.om2m.ipe.sdt.Activator 
+setCseService
+[2024-06-18 03:18:09,742 INFO] - org.eclipse.om2m.ipe.sdt.Activator 
+activate SDT IPE
+[2024-06-18 03:18:09,742 INFO] - org.eclipse.om2m.ipe.sdt.Activator 
+updated(cse.id.to.be.announced=null)
+updated(cse.name.to.be.announced=null)
+updated(announcement.enabled=false)
+updated(ipe.under.announced.resource=false)
+[2024-06-18 03:18:09,742 INFO] - org.eclipse.om2m.ipe.sdt.Activator 
+Start IPE App null / null / false
+[2024-06-18 03:18:09,743 INFO] - org.eclipse.om2m.ipe.sdt.SDTIpeApplication 
+create ipe application
+[2024-06-18 03:18:09,743 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/in-name,
+ from=admin:secretpassword,
+ resourceType=2,
+ content=org.eclipse.om2m.commons.resource.AE@35b1c37c,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,744 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/in-name
+[2024-06-18 03:18:09,744 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [AEController]
+[2024-06-18 03:18:09,763 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,763 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/CAE316076509,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.AE@32e9a7cf
+]
+[2024-06-18 03:18:09,764 INFO] - org.eclipse.om2m.core.router.Router 
+Received request in Router: RequestPrimitive [operation=1,
+ to=/in-cse/in-name,
+ from=admin:secretpassword,
+ resourceType=1,
+ content=org.eclipse.om2m.commons.resource.AccessControlPolicy@3bcf773e,
+ returnContentType=application/obj,
+ requestContentType=application/obj,
+ , 
+,tokens=null]
+[2024-06-18 03:18:09,765 INFO] - org.eclipse.om2m.core.router.Router 
+Request handling in the current CSE: /in-cse/in-name
+[2024-06-18 03:18:09,765 INFO] - org.eclipse.om2m.core.router.Router 
+ResourceController to be used [AccessControlPolicyController]
+[2024-06-18 03:18:09,787 INFO] - org.eclipse.om2m.core.controller.Controller 
+Clear and close transaction
+[2024-06-18 03:18:09,787 INFO] - org.eclipse.om2m.core.router.Router 
+Response in Router= ResponsePrimitive [
+ responseStatusCode=2001
+ to=admin:secretpassword
+ from=/in-cse
+ location=/in-cse/acp-542534677,
+ content (Only first 1000 caracters)=
+ org.eclipse.om2m.commons.resource.AccessControlPolicy@fed4482
+]
+[2024-06-18 03:18:09,790 INFO] - org.eclipse.om2m.binding.http.Activator 
+CseService discovered
+[2024-06-18 03:18:09,790 INFO] - org.eclipse.om2m.binding.coap.Activator 
+CSE Service discovered
+[2024-06-18 03:18:09,791 INFO] - org.eclipse.om2m.core.Activator 
+CSE Started
