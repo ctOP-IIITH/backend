@@ -39,11 +39,12 @@ om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 @router.post("/create-node")
 @token_required
 @admin_required
-def create_single_node(
+def create_node(
     node: NodeCreate,
     request: Request,
     session: Session = Depends(get_session),
     current_user=None,
+    node_data=None,
 ):
     """
     Create an Node (Container) with the given name and labels.
@@ -59,15 +60,106 @@ def create_single_node(
     Raises:
         HTTPException: If the node already exists or if there is an error creating the node.
     """
-    try:
-        response = create_node(node, request=request, session=session, current_user=current_user)
-        return {"response": response}
-    except Exception as e:
-        print("raised")
-        raise e
+    if node_data:
+        node = NodeCreate(
+            sensor_type_id=node_data['sensor_type_id'],
+            latitude=node_data['latitude'],
+            longitude=node_data['longitude'],
+            area=node_data['area'],
+            name=node_data['name']
+        )
+    _, _ = current_user, request
 
+    con = (
+        session.query(DBSensorType)
+        .filter(DBSensorType.id == node.sensor_type_id)
+        .first()
+    )
+    if con is None:
+        raise HTTPException(status_code=404, detail="Sensor type not found")
 
+    existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
+    if existing_node:
+        raise HTTPException(status_code=409, detail=f"Node with {node.name} already exists")
 
+    vert_name = get_vertical_name(node.sensor_type_id, session)
+    if vert_name is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vertical not found",
+        )
+
+    print(vert_name, node.sensor_type_id, node.latitude, node.longitude)
+    res_id = get_node_code(
+        vert_name, node.sensor_type_id, node.latitude, node.longitude, session
+    )
+
+    response = om2m.create_container(res_id, f"{vert_name}", labels=[vert_name, res_id])
+    print(response)
+    if response.status_code == 201:
+        res_data = om2m.create_container(
+            "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
+        )
+        res_desc = om2m.create_container(
+            "Descriptor",
+            f"{vert_name}/{res_id}",
+            labels=["Descriptor", res_id],
+        )
+
+        new_node = DBNode(
+            labels=[vert_name, res_id],
+            sensor_type_id=node.sensor_type_id,
+            sensor_node_number=get_next_sensor_node_number(
+                node.sensor_type_id, session
+            ),
+            lat=node.latitude,
+            long=node.longitude,
+            location=node.area,
+            area=node.area,
+            orid=response.json()["m2m:cnt"]["ri"].split("/")[-1],
+            node_name=res_id,
+            node_data_orid=res_data.json()["m2m:cnt"]["ri"].split("/")[-1],
+            token_num=None,
+            name=node.name
+        )
+        print("*************************************************************************************\n")
+        print(f"RESPONSE -> {response.json()['m2m:cnt']['ri'].split('/')[-1]}, NAME -> {res_id}, ORID -> {res_data.json()['m2m:cnt']['ri'].split('/')[-1]} ")
+        print("*************************************************************************************\n")
+        if res_data.status_code == 201 and res_desc.status_code == 201:
+            session.add(new_node)
+            session.commit()
+
+            # Update token_num with the generated id
+            new_node.token_num = new_node.id
+            session.commit()
+
+            if con:
+                parameters = str(con.parameters)
+            else:
+                raise HTTPException(status_code=404, detail="Sensor type not found")
+            sensor = om2m.create_cin(
+                f"{vert_name}/{res_id}",
+                "Descriptor",
+                con=parameters,
+                lbl=[get_sensor_type_name(node.sensor_type_id, session)],
+            ).status_code
+            print(sensor)
+            if sensor == 201:
+                raise HTTPException(status_code=201, detail="Node created")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error creating node",
+                )
+    elif response.status_code == 409:
+        raise HTTPException(status_code=409, detail="Node already exists")
+    else:
+        print(response.status_code)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error creating node",
+        )
+            
 @router.post("/assign-vendor")
 @token_required
 @admin_required

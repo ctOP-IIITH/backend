@@ -207,7 +207,6 @@ def create_node(
     session: Session = Depends(get_session),
     current_user=None,
     node_data=None,
-    bulk_import=False
 ):
     if node_data:
         node = NodeCreate(

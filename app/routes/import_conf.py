@@ -46,6 +46,7 @@ def import_conf(
 
     if len(nodes) > 5000: return {"error": "Import less than 5000 nodes at one time!"}
     sensor_types = session.query(DBSensorType).all()  # get all the sensors
+    # sensor type field from bulk import, convert this to id since thats what create node expects
     sensor_name_to_id = {sensor_type.res_name: sensor_type.id for sensor_type in sensor_types}
 
     created_nodes, failed_nodes, invalid_sensor_nodes = [], [], []
@@ -66,7 +67,7 @@ def import_conf(
             area=node['area'],
             name=node['name']
         )
-        result = create_node(node_data, request, session, current_user, node_data=node, bulk_import=True)
+        result = create_node(node_data, request, session, current_user, node_data=node)
         print(f"{node['name']} --> {result['message']}")
 
         if result["status"] == "success":
@@ -119,7 +120,7 @@ def import_csv(
             area=node['area'],
             name=node['name']
         )
-        result = create_node(node_data, request, session, current_user, node_data=node, bulk_import=True)
+        result = create_node(node_data, request, session, current_user, node_data=node)
 
         if result["status"] == "success":
             created_nodes.append(result["node"])
