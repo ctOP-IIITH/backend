@@ -28,15 +28,14 @@ from app.models.user import User as DBUser
 from app.models.user_types import UserType
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
-from app.utils.create import create_node
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI, JWT_SECRET_KEY
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
-@router.post("/create-node")
+@router.post("/create-node", status_code=201)
 @token_required
 @admin_required
 def create_node(
@@ -98,7 +97,7 @@ def create_node(
     print(response)
     if response.status_code == 201:
         res_data = om2m.create_container(
-            "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
+            "Data1", f"{vert_name}/{res_id}", labels=["Data", res_id]
         )
         res_desc = om2m.create_container(
             "Descriptor",
@@ -145,7 +144,19 @@ def create_node(
             ).status_code
             print(sensor)
             if sensor == 201:
-                raise HTTPException(status_code=201, detail="Node created")
+                # return 201 with node details
+                return {
+                    "node_name": new_node.node_name,
+                    "orid": new_node.orid,
+                    "node_data_orid": new_node.node_data_orid,
+                    "area": new_node.area,
+                    "sensor_type": get_sensor_type_name(node.sensor_type_id, session),
+                    "sensor_node_number": new_node.sensor_node_number,
+                    "lat": new_node.lat,
+                    "long": new_node.long,
+                    "token_num": new_node.token_num,
+                }
+
             else:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -366,7 +377,7 @@ def get_nodes(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
-            DBNode.name
+            DBVertical.res_short_name,
         )
         .first()
     )
@@ -379,17 +390,25 @@ def get_nodes(
         )
     data_orid = cur_node.node_data_orid
     print(data_orid)
-    response = om2m.get_containers(ri=data_orid, all=True)
+    response_ae = om2m.get_containers(
+        resource_path=cur_node.res_short_name + "/" + path
+    )
+    response = om2m.get_containers(
+        resource_path=cur_node.res_short_name + "/" + path, ri=data_orid, all=True
+    )
 
     if response.status_code == 200:
         all_data = response.json()
-
+        ae_node_data = response_ae.json()
         # Extract labels and content instances from the response
-        labels = all_data.get("m2m:cnt", {}).get("lbl", [])
-        content_instances = all_data.get("m2m:cnt", {}).get("m2m:cin", [])
-
+        labels = ae_node_data.get("m2m:cnt", {}).get("lbl", [])
+        content_instances = all_data.get("m2m:rsp", {}).get("m2m:cin", [])
         # Prepare content instances data
-        cins = [(ast.literal_eval(x["con"]), x["lt"]) for x in content_instances]
+        cins = [
+            (ast.literal_eval(x["con"]), x["lt"])
+            for x in content_instances
+            if cur_node.parameters[0] not in x["con"]
+        ]
 
         # Merge current node data with labels and content instances
         final_data = {**cur_node, "labels": labels, "cins": cins}
@@ -416,36 +435,41 @@ def get_latest_cin(
     """
     _, _ = current_user, request
 
-    cur_node = session.query(DBNode).filter(DBNode.node_name == path).first()
+    cur_node = (
+        session.query(DBNode)
+        .join(DBSensorType, DBSensorType.id == DBNode.sensor_type_id)
+        .join(DBVertical, DBVertical.id == DBSensorType.vertical_id)
+        .filter(DBNode.node_name == path)
+        .with_entities(
+            DBNode.node_data_orid,
+            DBVertical.res_short_name,
+        )
+        .first()
+    )
     print(path, cur_node)
     if cur_node is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Node not found",
         )
-    data_orid = cur_node.node_data_orid
-    print(data_orid)
-    response = om2m.get_containers(ri=data_orid, all=True)
 
-    if response.status_code == 200:
-        la_url = response.json().get("m2m:cnt", {}).get("la", "")
-        # /in-cse/in-name/AE-WF/WATER_QUANTITY01-0000-0001/Data/la
-        # We need AE-WF/WATER_QUANTITY01-0000-0001/Data
-        la_url = "/".join(la_url.split("/")[-4:-1])
-        print(la_url)
-        r = om2m.get_la_cin(la_url)
-        if r.status_code == 200:
-            return r.json()
-        elif r.status_code == 404:
-            raise HTTPException(
-                status_code=r.status_code,
-                detail="No CIN found",
-            )
-        else:
-            raise HTTPException(
-                status_code=r.status_code,
-                detail="Error getting latest CIN",
-            )
+    # /in-cse/in-name/AE-WF/WATER_QUANTITY01-0000-0001/Data/la
+    # We need AE-WF/WATER_QUANTITY01-0000-0001/Data
+    la_url = f"{cur_node.res_short_name}/{path}/Data"
+    print(la_url)
+    r = om2m.get_la_cin(la_url)
+    if r.status_code == 200:
+        return r.json()
+    elif r.status_code == 404:
+        raise HTTPException(
+            status_code=r.status_code,
+            detail="No CIN found",
+        )
+    else:
+        raise HTTPException(
+            status_code=r.status_code,
+            detail="Error getting latest CIN",
+        )
 
 
 @router.delete("/delete-node/{node_name}")

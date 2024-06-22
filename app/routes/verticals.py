@@ -9,7 +9,7 @@ from app.auth.auth import (
 )
 
 from app.database import get_session
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI
 from app.utils.om2m_lib import Om2m
 from app.schemas.verticals import VerticalCreate
 from app.models.vertical import Vertical as DBAE
@@ -19,7 +19,7 @@ from app.utils.create import create_vertical
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 @router.post("/create-ae")

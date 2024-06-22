@@ -4,10 +4,16 @@ This module defines the user routes for importing the configuration files.
 from fastapi import APIRouter, Depends, Request, File, UploadFile
 from sqlalchemy.orm import Session
 from app.utils.om2m_lib import Om2m
-from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
+from app.utils.create import (
+    insert_vertical,
+    insert_sensor_type,
+    insert_all_node,
+)
+
+from app.schemas.import_conf import Vertical, Area
+
 from app.database import get_session
-from app.config.settings import OM2M_URL
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI
 import csv
 from io import StringIO
 
@@ -26,7 +32,7 @@ from app.utils.create import create_node
 from app.schemas.nodes import NodeCreate
 
 router = APIRouter()
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 @router.post("/import")
 @token_required

@@ -11,7 +11,7 @@ class NodeCreate(BaseModel):
     latitude: float
     longitude: float
     area: str
-    name: str # used for mapping id to a name, user is expected to give this, created during bulk import
+    name: str = "Monkey" # used for mapping id to a name, user is expected to give this, created during bulk import
 
 
 class NodeAssign(BaseModel):

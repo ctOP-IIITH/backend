@@ -8,7 +8,6 @@ from app.database import get_session
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.schemas.sensor_types import (
     SensorTypeCreate,
-    SensorTypeGetAll,
     SensorTypeDelete,
 )
 
@@ -37,7 +36,13 @@ def create_sensor_type(
         print(new_sensor_type)
         session.add(new_sensor_type)
         session.commit()
-        return {"detail": "Sensor type created"}
+        # get the new sensor type
+        new_sensor_type = (
+            session.query(DBSensorType)
+            .filter(DBSensorType.res_name == sensor_type_name)
+            .first()
+        )
+        return new_sensor_type
     except Exception as e:
         print(e)
         raise HTTPException(
@@ -50,17 +55,12 @@ def create_sensor_type(
 @token_required
 @admin_required
 def get_sensor_types(
-    sensor_type: SensorTypeGetAll,
     request: Request,
     session: Session = Depends(get_session),
     current_user=None,
 ):
     try:
-        sensor_types = (
-            session.query(DBSensorType)
-            .filter(DBSensorType.vertical_id == sensor_type.vertical_id)
-            .all()
-        )
+        sensor_types = session.query(DBSensorType).all()
         if sensor_types is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
@@ -86,24 +86,16 @@ def get_sensor_type(
     current_user=None,
 ):
     _, _ = current_user, request
-    try:
-        sensor_types = (
-            session.query(DBSensorType)
-            .filter(DBSensorType.vertical_id == vert_id)
-            .all()
-        )
-        print(sensor_types)
-        if sensor_types is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
-            )
-        else:
-            return sensor_types
-    except Exception as e:
+    sensor_types = (
+        session.query(DBSensorType).filter(DBSensorType.vertical_id == vert_id).all()
+    )
+    print(sensor_types)
+    if sensor_types is None:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error getting sensor type {e}",
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sensor types not found"
         )
+    else:
+        return sensor_types
 
 
 @router.delete("/delete")
@@ -115,22 +107,18 @@ def delete_sensor_type(
     session: Session = Depends(get_session),
     current_user=None,
 ):
-    try:
-        sensor_type = (
-            session.query(DBSensorType)
-            .filter(DBSensorType.id == sensor_type.id)
-            .first()
-        )
-        if sensor_type is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Sensor type not found"
-            )
-        else:
-            session.delete(sensor_type)
-            session.commit()
-            raise HTTPException(status_code=200, detail="Sensor type deleted")
-    except Exception as e:
+    _, _ = current_user, request
+    sensor_type = (
+        session.query(DBSensorType)
+        .filter(DBSensorType.id == sensor_type.id)
+        .filter(DBSensorType.vertical_id == sensor_type.vertical_id)
+        .first()
+    )
+    if sensor_type is None:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting sensor type {e}",
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sensor type not found"
         )
+    else:
+        session.delete(sensor_type)
+        session.commit()
+        raise HTTPException(status_code=200, detail="Sensor type deleted")
