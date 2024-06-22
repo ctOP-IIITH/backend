@@ -12,6 +12,7 @@ from app.utils.create import (
 
 from app.schemas.import_conf import Vertical, Area
 
+from app.models.sensor_types import SensorTypes as DBSensorType
 from app.database import get_session
 from app.config.settings import OM2M_URL, MOBIUS_XM2MRI
 import csv

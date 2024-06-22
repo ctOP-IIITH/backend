@@ -20,7 +20,7 @@ def create_sensor_type(access_token):
     print(response.json())
 
 
-def create_node(access_token):
+def create_node(access_token, name):
     response = client.post(
         "/nodes/create-node",
         json={
@@ -29,9 +29,11 @@ def create_node(access_token):
             "latitude": 10,
             "longitude": 90,
             "area": "Kakinada",
+            "name": name
         },
         headers={"Authorization": f"Bearer {access_token}"},
     )
+    print(response.json())
     return response.json()
 
 
@@ -75,12 +77,11 @@ def test_create_cin():
     access_token = response.json()["access_token"]
     # create_vertical()
     create_sensor_type(access_token)
-    node = create_node(access_token)
+    node = create_node(access_token, "test_create_cin")
+    print("node", node)
     create_vendor(access_token)
-    # print("MONKEY ====> ",node)
     assign_vendor_to_node(node["node_name"], access_token)
     vendor = get_vendor(node["node_name"], access_token)
-    print("node", node)
     print("vendor", vendor)
     response = client.post(
         "/cin/create/" + str(node["token_num"]),
@@ -124,7 +125,7 @@ def test_invalid_type_of_req_create_cin():
     access_token = response.json()["access_token"]
     # create_vertical()
     create_sensor_type(access_token)
-    node = create_node(access_token)
+    node = create_node(access_token, "test_invalid_type_of_req_create_cin")
     create_vendor(access_token)
     assign_vendor_to_node(node["node_name"], access_token)
     vendor = get_vendor(node["node_name"], access_token)

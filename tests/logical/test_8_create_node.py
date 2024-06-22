@@ -30,6 +30,7 @@ def test_create_node():
             "latitude": 10,
             "longitude": 90,
             "area": "Kakinada",
+            "name": "name1"
         },
         headers={"Authorization": f"Bearer {access_token}"},
     )
