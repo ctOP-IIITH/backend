@@ -164,19 +164,3 @@ class Om2m:
         )
         return r
 
-    def create_subscription(self, resource_path, rn, nu, nct=2, timeout=None):
-        """
-        Creates a subscription resource in OM2M.
-        """
-        data = {"m2m:sub": {"rn": rn, "nu": nu, "nct": nct}}
-        headers = {
-            "X-M2M-Origin": f"{self.username}:{self.password}",
-            "Content-Type": "application/json;ty=23",
-        }
-        r = requests.post(
-            f"{self.url}/{resource_path}/Data/",
-            headers=headers,
-            json=data,
-            timeout=timeout,
-        )
-        return r
