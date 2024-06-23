@@ -20,7 +20,7 @@ def test_valid_bulk_import():
     # assert 1 == 2 # for confirmation
     assert response.status_code == 200
 
-def test_invalid_type_of_request_import_configurations():
+def test_invalid_keys():
     # login as admin and get access token
     time.sleep(1)
     response = client.post(
