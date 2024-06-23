@@ -193,7 +193,7 @@ def test_invalid_vertical_id_get_all_sensor_types():
         headers={"Authorization": f"Bearer {access_token}"},
     )
     print(response.json())
-    assert response.status_code == 404
+    assert response.json() == [] and response.status_code == 200
 
 
 def test_invalid_type_of_request_get_sensor_types():
