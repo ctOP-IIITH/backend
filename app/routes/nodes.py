@@ -1,6 +1,8 @@
 import ast
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
+from app.schemas.nodes import NodeCreate
+from app.models.node import Node as DBNode
 
 from app.auth.auth import (
     token_required,
@@ -27,6 +29,7 @@ from app.models.user_types import UserType
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
+from app.utils.create import create_node
 
 router = APIRouter()
 
@@ -41,6 +44,7 @@ def create_node(
     request: Request,
     session: Session = Depends(get_session),
     current_user=None,
+    node_data=None,
 ):
     """
     Create an Node (Container) with the given name and labels.
@@ -56,23 +60,33 @@ def create_node(
     Raises:
         HTTPException: If the node already exists or if there is an error creating the node.
     """
+    if node_data:
+        node = NodeCreate(
+            sensor_type_id=node_data['sensor_type_id'],
+            latitude=node_data['latitude'],
+            longitude=node_data['longitude'],
+            area=node_data['area'],
+            name=node_data['name']
+        )
     _, _ = current_user, request
+
     con = (
         session.query(DBSensorType)
         .filter(DBSensorType.id == node.sensor_type_id)
         .first()
     )
     if con is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Sensor type not found"
-        )
+        raise HTTPException(status_code=404, detail="Sensor type not found")
+
+    existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
+    if existing_node:
+        raise HTTPException(status_code=409, detail=f"Node with {node.name} already exists")
 
     vert_name = get_vertical_name(node.sensor_type_id, session)
     if vert_name is None:
-        print("vertical not found")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Non Existing Domain, please check the sensor type",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vertical not found",
         )
 
     print(vert_name, node.sensor_type_id, node.latitude, node.longitude)
@@ -81,7 +95,7 @@ def create_node(
     )
 
     response = om2m.create_container(res_id, f"{vert_name}", labels=[vert_name, res_id])
-
+    print(response)
     if response.status_code == 201:
         res_data = om2m.create_container(
             "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
@@ -106,8 +120,11 @@ def create_node(
             node_name=res_id,
             node_data_orid=res_data.json()["m2m:cnt"]["ri"].split("/")[-1],
             token_num=None,
+            name=node.name
         )
-
+        print("*************************************************************************************\n")
+        print(f"RESPONSE -> {response.json()['m2m:cnt']['ri'].split('/')[-1]}, NAME -> {res_id}, ORID -> {res_data.json()['m2m:cnt']['ri'].split('/')[-1]} ")
+        print("*************************************************************************************\n")
         if res_data.status_code == 201 and res_desc.status_code == 201:
             session.add(new_node)
             session.commit()
@@ -134,7 +151,6 @@ def create_node(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Error creating node",
                 )
-
     elif response.status_code == 409:
         raise HTTPException(status_code=409, detail="Node already exists")
     else:
@@ -143,8 +159,7 @@ def create_node(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating node",
         )
-
-
+            
 @router.post("/assign-vendor")
 @token_required
 @admin_required
@@ -303,6 +318,7 @@ def get_node(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
+            DBNode.name
         )
         .all()
     )
@@ -350,6 +366,7 @@ def get_nodes(
             DBNode.lat,
             DBNode.long,
             DBNode.token_num,
+            DBNode.name
         )
         .first()
     )

@@ -2,7 +2,7 @@
 This module provides a class to create various entities like vertical, sensor type and node on OM2M as well as the database.
 """
 
-from fastapi import HTTPException, status
+from fastapi import Depends, Request, HTTPException, status
 from sqlalchemy.orm import Session
 import json
 
@@ -14,14 +14,15 @@ from app.utils.utils import (
     get_sensor_type_id,
     get_next_sensor_node_number,
     get_node_code,
+    get_sensor_type_name
 )
-from app.schemas.verticals import VerticalCreate
+from app.models.sensor_types import SensorTypes as DBSensorType
 from app.models.vertical import Vertical as DBAE
 from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
 from app.models.vertical import Vertical as DBVertical
-from app.models.sensor_types import SensorTypes as DBSensorTypes
 from app.models.node import Node as DBNode
-
+from app.schemas.nodes import NodeCreate
+from app.database import get_session
 
 om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
 
@@ -108,10 +109,10 @@ def insert_sensor_type(sensor_type: SensorType, db: Session, vert_id: int):
     Check if the sensor type already exists in the database. If it does, return it."""
 
     res = (
-        db.query(DBSensorTypes)
+        db.query(DBSensorType)
         .filter(
-            DBSensorTypes.res_name == sensor_type.name
-            and DBSensorTypes.vertical_id == vert_id
+            DBSensorType.res_name == sensor_type.name
+            and DBSensorType.vertical_id == vert_id
         )
         .first()
     )
@@ -121,7 +122,7 @@ def insert_sensor_type(sensor_type: SensorType, db: Session, vert_id: int):
 
     params = list(sensor_type.parameters.keys())
     datatypes = list(sensor_type.parameters.values())
-    db_sensor_type = DBSensorTypes(
+    db_sensor_type = DBSensorType(
         res_name=sensor_type.name,
         parameters=params,
         data_types=datatypes,
@@ -198,3 +199,112 @@ def insert_all_node(area: Area, db: Session):
             db.commit()
             print()
     return True
+
+
+def create_node(
+    node: NodeCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user=None,
+    node_data=None,
+):
+    if node_data:
+        node = NodeCreate(
+            sensor_type_id=node_data['sensor_type_id'],
+            latitude=node_data['latitude'],
+            longitude=node_data['longitude'],
+            area=node_data['area'],
+            name=node_data['name']
+        )
+    _, _ = current_user, request
+
+    try:
+        con = (
+            session.query(DBSensorType)
+            .filter(DBSensorType.id == node.sensor_type_id)
+            .first()
+        )
+        if con is None:
+            return {"status": "error", "message": "Sensor type not found"}
+
+        existing_node = session.query(DBNode).filter(DBNode.name == node.name).first()
+        if existing_node:
+            return {"status": "error", "message": f"Node: {node.name} already exists"}
+
+        vert_name = get_vertical_name(node.sensor_type_id, session)
+        if vert_name is None:
+            print("vertical not found")
+            return {"status": "error", "message": "Non Existing Domain, please check the sensor type"}
+
+        print(vert_name, node.sensor_type_id, node.latitude, node.longitude)
+        res_id = get_node_code(
+            vert_name, node.sensor_type_id, node.latitude, node.longitude, session
+        )
+
+        response = om2m.create_container(res_id, f"{vert_name}", labels=[vert_name, res_id])
+        print(response)
+        if response.status_code == 201:
+            res_data = om2m.create_container(
+                "Data", f"{vert_name}/{res_id}", labels=["Data", res_id]
+            )
+            res_desc = om2m.create_container(
+                "Descriptor",
+                f"{vert_name}/{res_id}",
+                labels=["Descriptor", res_id],
+            )
+
+            new_node = DBNode(
+                labels=[vert_name, res_id],
+                sensor_type_id=node.sensor_type_id,
+                sensor_node_number=get_next_sensor_node_number(
+                    node.sensor_type_id, session
+                ),
+                lat=node.latitude,
+                long=node.longitude,
+                location=node.area,
+                area=node.area,
+                orid=response.json()["m2m:cnt"]["ri"].split("/")[-1],
+                node_name=res_id,
+                node_data_orid=res_data.json()["m2m:cnt"]["ri"].split("/")[-1],
+                token_num=None,
+                name=node.name
+            )
+            print("*************************************************************************************\n")
+            print(f"RESPONSE -> {response.json()['m2m:cnt']['ri'].split('/')[-1]}, NAME -> {res_id}, ORID -> {res_data.json()['m2m:cnt']['ri'].split('/')[-1]} ")
+            print("*************************************************************************************\n")
+            if res_data.status_code == 201 and res_desc.status_code == 201:
+                session.add(new_node)
+                session.commit()
+
+                # Update token_num with the generated id
+                new_node.token_num = new_node.id  # increases cnt of /cin
+                session.commit()
+
+                if con:
+                    parameters = str(con.parameters)
+                else:
+                    return {"status": "error", "message": "Sensor type not found"}
+                sensor = om2m.create_cin(
+                    f"{vert_name}/{res_id}",
+                    "Descriptor",
+                    con=parameters,
+                    lbl=[get_sensor_type_name(node.sensor_type_id, session)],
+                ).status_code
+                print(sensor)
+                if sensor == 201:
+                    if node_data:
+                        return {"status": "success", "message": "Node created", "node": node_data}
+                    else:
+                        return {"status": "success", "message": "Node created"}
+                else:
+                    return {"status": "error", "message": "Error creating node"}
+            else:
+                return {"status": "error", "message": "Error creating node"}
+        elif response.status_code == 409:
+            return {"status": "error", "message": "Node already exists"}
+        else:
+            print(response.status_code)
+            return {"status": "error", "message": "Error creating node"}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

@@ -30,6 +30,7 @@ class Node(Base):
     token_num = Column(Integer, nullable=True)
     node_name = Column(String(50), nullable=True)
     node_data_orid = Column(String(50), nullable=True)
+    name = Column(String(50), nullable=False)
 
     def __repr__(self):
         return f"<Node {self.id}>"  # TODO: Return resource name
