@@ -1,0 +1,47 @@
+{
+    "nodes": [
+        {
+            "latitude": 17.446919,
+            "longitude": 32.612,
+            "area": "Gachibowli",
+            "sensor_type":"test_sensor_type",
+            "domain": "Water Quality",
+            "name": "Name 1"
+        },
+        {
+            "latitude": 52.446919,
+            "longitude": 12.612,
+            "area": "Mehdipatnam",
+            "sensor_type":"test_sensor_type",
+            "domain": "Water Quality",
+            "name": "Name 2"
+
+        },
+        {
+            "latitude": 17.450431,
+            "longitude": 32.611785,
+            "area": "Gachibowli",
+            "sensor_type":"test_sensor_type",
+            "domain": "Streetlights",
+            "name": "Name 3"
+
+        },
+        {
+            "latitude": 17.446242,
+            "longitude": 32.616503,
+            "area": "Gachibowli",
+            "sensor_type":"test_sensor_type",
+            "domain":"Water Quantity",
+            "name": "Name 4"
+        },
+        {
+            "latitude": 52.443273,
+            "longitude": 12.615019,
+            "area": "Mehdipatnam",
+            "sensor_type":"test_sensor_type",
+            "domain": "Streetlights",
+            "name": "Name 5"
+
+        }
+    ]
+}

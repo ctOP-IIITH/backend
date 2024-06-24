@@ -1,4 +1,5 @@
 """This module contains the settings for the application."""
+
 import os
 from dotenv import load_dotenv
 
@@ -14,3 +15,4 @@ OM2M_URL = os.getenv("OM2M_URL")
 OM2M_USERNAME = os.getenv("OM2M_USERNAME")
 OM2M_PASSWORD = os.getenv("OM2M_PASSWORD")
 ROOT_PATH = os.getenv("ROOT_PATH") or '/'
+MOBIUS_XM2MRI = os.getenv("MOBIUS_XM2MRI")

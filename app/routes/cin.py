@@ -18,11 +18,11 @@ from app.models.node import Node as DBNode
 from app.models.node_owners import NodeOwners as DBNodeOwners
 from app.models.user import User as DBUser
 from app.models.sensor_types import SensorTypes as DBSensorType
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD, JWT_SECRET_KEY
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI, JWT_SECRET_KEY
 
 router = APIRouter()
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 @router.post("/create/{token_id}")
@@ -129,8 +129,8 @@ def create_cin(
         con.append(str(cin[param]))
         print(con)
     response = om2m.create_cin(
-        None,
-        node.node_data_orid,
+        vertical_name,
+        node.node_name,
         str(con),
         lbl=list(cin.keys()),
     )
@@ -177,17 +177,18 @@ def delete_cin(
             status_code=status.HTTP_404_NOT_FOUND, detail="Node token not found"
         )
 
-    try:
-        response = om2m.delete_resource(f"{cin.path}/{cin.cin_id}")
-        if response.status_code == 200:
-            # the CIN can be deleted from the database (CLARIFICATION REQUIRED)
-            raise HTTPException(status_code=200, detail="CIN deleted Successfully")
-        elif response.status_code == 404:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="CIN not found"
-            )
-    except Exception as e:
+    response = om2m.delete_resource(f"{cin.path}/{cin.cin_id}")
+    print(response.status_code)
+    if response.status_code == 200:
+        # the CIN can be deleted from the database (CLARIFICATION REQUIRED)
+        return {"status": "CIN deleted"}
+    elif response.status_code == 404:
+        print("CIN not found")
         raise HTTPException(
-            status_code=500,
-            detail=f"Error deleting CIN. {e}",
+            status_code=status.HTTP_404_NOT_FOUND, detail="CIN not found"
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error deleting CIN",
         )

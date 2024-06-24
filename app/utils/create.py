@@ -18,13 +18,13 @@ from app.utils.utils import (
 )
 from app.models.sensor_types import SensorTypes as DBSensorType
 from app.models.vertical import Vertical as DBAE
-from app.config.settings import OM2M_URL, OM2M_USERNAME, OM2M_PASSWORD
+from app.config.settings import OM2M_URL, MOBIUS_XM2MRI
 from app.models.vertical import Vertical as DBVertical
 from app.models.node import Node as DBNode
 from app.schemas.nodes import NodeCreate
 from app.database import get_session
 
-om2m = Om2m(OM2M_USERNAME, OM2M_PASSWORD, OM2M_URL)
+om2m = Om2m(MOBIUS_XM2MRI, OM2M_URL)
 
 
 def create_vertical(vert_name, vert_short_name, vert_description, labels, db: Session):
@@ -33,7 +33,7 @@ def create_vertical(vert_name, vert_short_name, vert_description, labels, db: Se
     res = db.query(DBAE).filter(DBAE.res_name == vert_name).first()
     if res is not None:
         return 409
-    status_code, data = om2m.create_ae(vert_short_name, "", labels=labels)
+    status_code, data = om2m.create_ae(vert_short_name, labels=labels)
     if status_code == 409:
         data = om2m.get_containers(vert_short_name)
         data = data.text
